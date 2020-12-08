@@ -1,0 +1,9 @@
+**/build
+**/local.properties
+**/buildtools
+.idea
+*.iml
+.DS_Store
+.*
+!.gitlab-ci.yml
+!.gitignore
