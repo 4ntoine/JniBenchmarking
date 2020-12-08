@@ -1,2 +1,3 @@
-include ':app'
+include ':calculator'
+include ':calculator-benchmarking'
 rootProject.name = "JniBenchmarking"
