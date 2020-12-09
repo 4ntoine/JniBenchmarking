@@ -27,6 +27,8 @@ class Library {
         external fun nativeStaticNoArgsNoResult()
     }
 
+    // no arguments
+
     external fun nativeNoArgsNoResult()
     external fun nativeThreadSafeNoArgsNoResult()
     external fun nativeNoArgsIntResult(): Int
@@ -34,8 +36,17 @@ class Library {
     external fun nativeNoArgsDoubleResult(): Double
     external fun nativeNoArgsStringResult(): String
 
+    // 1 argument
+
     external fun nativeIntArgNoResult(arg: Int)
     external fun nativeFloatArgNoResult(arg: Float)
     external fun nativeDoubleArgNoResult(arg: Double)
     external fun nativeStringArgNoResult(arg: String)
+
+    // 2 arguments
+
+    external fun native2IntArgNoResult(arg1: Int, arg2: Int)
+    external fun native2FloatArgNoResult(arg1: Float, arg2: Float)
+    external fun native2DoubleArgNoResult(arg1: Double, arg2: Double)
+    external fun native2StringArgNoResult(arg1: String, arg2: String)
 }

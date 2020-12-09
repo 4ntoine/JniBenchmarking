@@ -99,26 +99,48 @@ class JniBenchmark {
         library.nativeNoArgsStringResult()
     }
 
-    // arguments
+    // arguments: 1
 
     @Test
-    fun benchmarkIntArgNoResult() = benchmarkRule.measureRepeated {
+    fun benchmark1IntArgNoResult() = benchmarkRule.measureRepeated {
         library.nativeIntArgNoResult(1)
     }
 
     @Test
-    fun benchmarkFloatArgNoResult() = benchmarkRule.measureRepeated {
+    fun benchmark1FloatArgNoResult() = benchmarkRule.measureRepeated {
         library.nativeFloatArgNoResult(1.0f)
     }
 
     @Test
-    fun benchmarkDoubleArgNoResult() = benchmarkRule.measureRepeated {
+    fun benchmark1DoubleArgNoResult() = benchmarkRule.measureRepeated {
         library.nativeDoubleArgNoResult(1.0)
     }
 
     @Test
-    fun benchmarkStringArgNoResult() = benchmarkRule.measureRepeated {
+    fun benchmark1StringArgNoResult() = benchmarkRule.measureRepeated {
         library.nativeStringArgNoResult("hello world")
+    }
+
+    // arguments: 2
+
+    @Test
+    fun benchmark2IntArgNoResult() = benchmarkRule.measureRepeated {
+        library.native2IntArgNoResult(1, 2)
+    }
+
+    @Test
+    fun benchmark2FloatArgNoResult() = benchmarkRule.measureRepeated {
+        library.native2FloatArgNoResult(1.0f, 2.0f)
+    }
+
+    @Test
+    fun benchmark2DoubleArgNoResult() = benchmarkRule.measureRepeated {
+        library.native2DoubleArgNoResult(1.0, 2.0)
+    }
+
+    @Test
+    fun benchmark2StringArgNoResult() = benchmarkRule.measureRepeated {
+        library.native2StringArgNoResult("hello", "world")
     }
 
     // echo (returns type is equal to argument)

@@ -112,6 +112,8 @@ Java_com_eyeo_ctu_Library_nativeNoArgsStringResult(JNIEnv *env, jobject thiz)
     return JniStdStringToJava(env, stringResult);
 }
 
+// 1 argument
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_eyeo_ctu_Library_nativeIntArgNoResult(JNIEnv *env, jobject thiz, jint arg)
@@ -141,5 +143,39 @@ JNIEXPORT void JNICALL
 Java_com_eyeo_ctu_Library_nativeStringArgNoResult(JNIEnv *env, jobject thiz, jstring arg)
 {
     // string argument
+    // no result
+}
+
+// 2 arguments
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_native2IntArgNoResult(JNIEnv *env, jobject thiz, jint arg1, jint arg2)
+{
+    // 2 int arguments
+    // no result
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_native2FloatArgNoResult(JNIEnv *env, jobject thiz, jfloat arg1, jfloat arg2)
+{
+    // 2 float arguments
+    // no result
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_native2DoubleArgNoResult(JNIEnv *env, jobject thiz, jdouble arg1, jdouble arg2)
+{
+    // 2 double arguments
+    // no result
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_native2StringArgNoResult(JNIEnv *env, jobject thiz, jstring arg1, jstring arg2)
+{
+    // 2 string arguments
     // no result
 }
