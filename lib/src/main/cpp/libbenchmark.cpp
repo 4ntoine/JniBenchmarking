@@ -179,3 +179,33 @@ Java_com_eyeo_ctu_Library_native2StringArgNoResult(JNIEnv *env, jobject thiz, js
     // 2 string arguments
     // no result
 }
+
+// echo
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_eyeo_ctu_Library_nativeIntEcho(JNIEnv *env, jobject thiz, jint arg)
+{
+    return arg;
+}
+
+extern "C"
+JNIEXPORT jfloat JNICALL
+Java_com_eyeo_ctu_Library_nativeFloatEcho(JNIEnv *env, jobject thiz, jfloat arg)
+{
+    return arg;
+}
+
+extern "C"
+JNIEXPORT jdouble JNICALL
+Java_com_eyeo_ctu_Library_nativeDoubleEcho(JNIEnv *env, jobject thiz, jdouble arg)
+{
+    return arg;
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_eyeo_ctu_Library_nativeStringEcho(JNIEnv *env, jobject thiz, jstring arg)
+{
+    return arg;
+}

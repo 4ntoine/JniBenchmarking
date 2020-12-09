@@ -49,4 +49,11 @@ class Library {
     external fun native2FloatArgNoResult(arg1: Float, arg2: Float)
     external fun native2DoubleArgNoResult(arg1: Double, arg2: Double)
     external fun native2StringArgNoResult(arg1: String, arg2: String)
+
+    // echo
+
+    external fun nativeIntEcho(arg: Int): Int
+    external fun nativeFloatEcho(arg: Float): Float
+    external fun nativeDoubleEcho(arg: Double): Double
+    external fun nativeStringEcho(arg: String): String
 }

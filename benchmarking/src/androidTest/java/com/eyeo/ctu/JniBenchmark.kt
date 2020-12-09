@@ -145,5 +145,23 @@ class JniBenchmark {
 
     // echo (returns type is equal to argument)
 
+    @Test
+    fun benchmarkIntEcho() = benchmarkRule.measureRepeated {
+        library.nativeIntEcho(1)
+    }
 
+    @Test
+    fun benchmarkFloatEcho() = benchmarkRule.measureRepeated {
+        library.nativeFloatEcho(1.0f)
+    }
+
+    @Test
+    fun benchmarkDoubleEcho() = benchmarkRule.measureRepeated {
+        library.nativeDoubleEcho(1.0)
+    }
+
+    @Test
+    fun benchmarkStringEcho() = benchmarkRule.measureRepeated {
+        library.nativeStringEcho("hello world")
+    }
 }
