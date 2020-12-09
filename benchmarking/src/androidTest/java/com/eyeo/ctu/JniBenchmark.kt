@@ -28,6 +28,8 @@ class JniBenchmark {
     @get:Rule
     val benchmarkRule = BenchmarkRule()
 
+    // no arguments
+
     @Test
     fun benchmarkStaticNoArgsNoResult() = benchmarkRule.measureRepeated {
         Library.nativeStaticNoArgsNoResult()
@@ -96,4 +98,30 @@ class JniBenchmark {
     fun benchmarkNoArgsStringResult() = benchmarkRule.measureRepeated {
         library.nativeNoArgsStringResult()
     }
+
+    // arguments
+
+    @Test
+    fun benchmarkIntArgNoResult() = benchmarkRule.measureRepeated {
+        library.nativeIntArgNoResult(1)
+    }
+
+    @Test
+    fun benchmarkFloatArgNoResult() = benchmarkRule.measureRepeated {
+        library.nativeFloatArgNoResult(1.0f)
+    }
+
+    @Test
+    fun benchmarkDoubleArgNoResult() = benchmarkRule.measureRepeated {
+        library.nativeDoubleArgNoResult(1.0)
+    }
+
+    @Test
+    fun benchmarkStringArgNoResult() = benchmarkRule.measureRepeated {
+        library.nativeStringArgNoResult("hello world")
+    }
+
+    // echo (returns type is equal to argument)
+
+
 }

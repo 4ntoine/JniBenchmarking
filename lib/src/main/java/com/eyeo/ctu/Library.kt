@@ -33,4 +33,9 @@ class Library {
     external fun nativeNoArgsFloatResult(): Float
     external fun nativeNoArgsDoubleResult(): Double
     external fun nativeNoArgsStringResult(): String
+
+    external fun nativeIntArgNoResult(arg: Int)
+    external fun nativeFloatArgNoResult(arg: Float)
+    external fun nativeDoubleArgNoResult(arg: Double)
+    external fun nativeStringArgNoResult(arg: String)
 }

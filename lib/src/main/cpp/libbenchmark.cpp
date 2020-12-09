@@ -18,6 +18,32 @@
 #include <jni.h>
 #include "Utils.h"
 
+jint JNI_OnLoad(JavaVM* vm, void* reserved)
+{
+    JNIEnv* env;
+    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
+    {
+        return JNI_ERR;
+    }
+
+    JniUtils_OnLoad(vm, env, reserved);
+
+    return JNI_VERSION;
+}
+
+void JNI_OnUnload(JavaVM* vm, void* reserved)
+{
+    JNIEnv* env;
+    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
+    {
+        return;
+    }
+
+    JniUtils_OnUnload(vm, env, reserved);
+}
+
+// ---
+
 std::string stringResult = "hello world";
 
 extern "C"
@@ -86,28 +112,34 @@ Java_com_eyeo_ctu_Library_nativeNoArgsStringResult(JNIEnv *env, jobject thiz)
     return JniStdStringToJava(env, stringResult);
 }
 
-// ---
-
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_nativeIntArgNoResult(JNIEnv *env, jobject thiz, jint arg)
 {
-    JNIEnv* env;
-    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
-    {
-        return JNI_ERR;
-    }
-
-    JniUtils_OnLoad(vm, env, reserved);
-
-    return JNI_VERSION;
+    // int argument
+    // no result
 }
 
-void JNI_OnUnload(JavaVM* vm, void* reserved)
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_nativeFloatArgNoResult(JNIEnv *env, jobject thiz, jfloat arg)
 {
-    JNIEnv* env;
-    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
-    {
-        return;
-    }
+    // float argument
+    // no result
+}
 
-    JniUtils_OnUnload(vm, env, reserved);
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_nativeDoubleArgNoResult(JNIEnv *env, jobject thiz, jdouble arg)
+{
+    // double argument
+    // no result
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_nativeStringArgNoResult(JNIEnv *env, jobject thiz, jstring arg)
+{
+    // string argument
+    // no result
 }
