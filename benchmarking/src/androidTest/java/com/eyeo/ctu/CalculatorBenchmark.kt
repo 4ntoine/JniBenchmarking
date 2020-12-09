@@ -23,6 +23,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class CalculatorBenchmark {
+    companion object {
+        const val TIMES = 10_000
+    }
 
     private val calculator = Calculator()
 
@@ -30,7 +33,16 @@ class CalculatorBenchmark {
     val benchmarkRule = BenchmarkRule()
 
     @Test
-    fun benchmarkCalculatorAdd() = benchmarkRule.measureRepeated {
-        calculator.add(3.0f, 1.0f)
+    fun benchmarkCalculatorAdd_overJni() = benchmarkRule.measureRepeated {
+        // multiple (TIMES) JNI calls
+        repeat(TIMES) {
+            calculator.add(1.0f, 2.0f)
+        }
+    }
+
+    @Test
+    fun benchmarkCalculatorAdd_native() = benchmarkRule.measureRepeated {
+        // it's single JNI call that is doing TIMES calculation in native code
+        calculator.timesAdd(TIMES, 1.0f, 2.0f)
     }
 }

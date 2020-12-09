@@ -16,13 +16,12 @@
  */
 
 #include <jni.h>
-#include <string>
 #include "Calculator.h"
 
 Calculator calculator;
 
 extern "C"
-jfloat
+JNIEXPORT jfloat JNICALL
     Java_com_eyeo_ctu_Calculator_nativeAdd(
         JNIEnv *env,
         jobject thiz,
@@ -30,4 +29,20 @@ jfloat
         jfloat b)
 {
     return calculator.add(a, b);
+}
+
+extern "C"
+JNIEXPORT jfloat JNICALL
+    Java_com_eyeo_ctu_Calculator_nativeTimesAdd(
+        JNIEnv *env,
+        jobject thiz,
+        jint times,
+        jfloat a,
+        jfloat b)
+{
+    jfloat result = 0;
+    while (times--) {
+        result = calculator.add(a, b);
+    }
+    return result; // it seems to have proper comparision with `nativeAdd` we need to return smth
 }

@@ -17,16 +17,20 @@
 
 package com.eyeo.ctu
 
-class Calculator {
+class Library {
     companion object {
         init {
-            System.loadLibrary("calculator")
+            System.loadLibrary("benchmark")
         }
+
+        @JvmStatic
+        external fun nativeStaticNoArgsNoResult()
     }
 
-    fun add(a: Float, b: Float): Float = nativeAdd(a, b)
-    fun timesAdd(times: Int, a: Float, b: Float) = nativeTimesAdd(times, a, b)
-
-    private external fun nativeAdd(a: Float, b: Float): Float
-    private external fun nativeTimesAdd(times: Int, a: Float, b: Float): Float
+    external fun nativeNoArgsNoResult()
+    external fun nativeThreadSafeNoArgsNoResult()
+    external fun nativeNoArgsIntResult(): Int
+    external fun nativeNoArgsFloatResult(): Float
+    external fun nativeNoArgsDoubleResult(): Double
+    external fun nativeNoArgsStringResult(): String
 }

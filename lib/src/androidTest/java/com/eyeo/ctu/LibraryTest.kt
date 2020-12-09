@@ -14,19 +14,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.eyeo.ctu
 
-class Calculator {
-    companion object {
-        init {
-            System.loadLibrary("calculator")
+import org.junit.Test
+import kotlin.concurrent.thread
+
+class LibraryTest {
+
+    @Test
+    fun testCallFromBackgroundThread() {
+        val library = Library()
+        library.nativeThreadSafeNoArgsNoResult()
+        val t = thread {
+            library.nativeThreadSafeNoArgsNoResult()
         }
+        t.start()
+        t.join()
     }
-
-    fun add(a: Float, b: Float): Float = nativeAdd(a, b)
-    fun timesAdd(times: Int, a: Float, b: Float) = nativeTimesAdd(times, a, b)
-
-    private external fun nativeAdd(a: Float, b: Float): Float
-    private external fun nativeTimesAdd(times: Int, a: Float, b: Float): Float
 }
