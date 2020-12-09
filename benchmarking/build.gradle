@@ -42,4 +42,5 @@ dependencies {
   androidTestImplementation "androidx.benchmark:benchmark-junit4:1.0.0"
   androidTestImplementation project(":calculator")
   androidTestImplementation project(":lib")
+  androidTestImplementation project(":engine")
 }
