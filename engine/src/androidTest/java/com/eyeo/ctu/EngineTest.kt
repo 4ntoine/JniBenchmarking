@@ -17,33 +17,24 @@
 
 package com.eyeo.ctu
 
-enum class ContentType {
-    Image,
-    Script,
-    SubDocument
-    // ...
-}
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Test
 
-// filters
-abstract class Filter
-class BlockingFilter(val pointer: Long) : Filter()
-class ExceptionFilter : Filter()
+class EngineTest {
 
-// subscription
-class Subscription(pointer: Long)
+    private val engine = Engine()
 
-class Engine {
-    companion object {
-        init {
-            System.loadLibrary("engine")
-        }
+    @Test
+    fun testMatches() {
+        val filter = engine.matches(
+            "http://www.domain.com/someResource.html",
+            setOf(ContentType.SubDocument),
+            listOf("http://www.domain.com/frame1.html", "http://www.domain.com/frame2.html"),
+            null,
+            true)
+        assertNotNull(filter)
+        val blockingFilter = filter as BlockingFilter
+        assertNotNull(blockingFilter.pointer)
     }
-
-    external fun matches(url: String,
-                         contentTypes: Set<ContentType>,
-                         documentUrls: List<String>,
-                         siteKey: String?,
-                         specificOnly: Boolean): Filter?
-
-    external fun getListedSubscriptions(): List<Subscription>
 }

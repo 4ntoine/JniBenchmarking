@@ -1,22 +1,29 @@
+/*
+ * This file is part of Adblock Plus <https://adblockplus.org/>,
+ * Copyright (C) 2006-present eyeo GmbH
+ *
+ * Adblock Plus is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * Adblock Plus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "Engine.h"
 #include "Utils.h"
 
-// precached in JNI_OnLoad and released in JNI_OnUnload
-JniGlobalReference<jclass>* blockingFilterClass;
-jmethodID blockingFilterCtor;
-
-void JniEngine_OnLoad(JavaVM* vm, JNIEnv* env, void* reserved)
+BlockingFilter* Engine::matches(const std::string& url,
+                                int contentTypeMask,
+                                const std::vector<std::string>& documentUrls,
+                                const std::string& siteKey,
+                                bool specificOnly)
 {
-    blockingFilterClass = new JniGlobalReference<jclass>(env, env->FindClass("com/eyeo/ctu/BlockingFilter"));
-    blockingFilterCtor = env->GetMethodID(blockingFilterClass->Get(), "<init>", "()V");
-}
-
-void JniEngine_OnUnload(JavaVM* vm, JNIEnv* env, void* reserved)
-{
-    if (blockingFilterClass)
-    {
-        delete blockingFilterClass;
-        blockingFilterClass = nullptr;
-    }
+    return new BlockingFilter();
 }
 

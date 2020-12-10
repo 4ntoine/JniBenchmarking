@@ -189,4 +189,6 @@ inline jobjectArray JniGetStringArrayField(JNIEnv* env, jclass clazz, jobject jO
   return (jobjectArray)env->GetObjectField(jObj, env->GetFieldID(clazz, name, "[Ljava/lang/String;"));
 }
 
+std::vector<std::string> JavaStringListToStringVector(JNIEnv* env, jobject jList);
+
 #endif

@@ -15,9 +15,29 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <jni.h>
 #include "Utils.h"
 #include "Engine.h"
+#include <string>
+#include <vector>
+
+// precached in JNI_OnLoad and released in JNI_OnUnload
+JniGlobalReference<jclass>* blockingFilterClass;
+jmethodID blockingFilterCtor;
+
+void JniEngine_OnLoad(JavaVM* vm, JNIEnv* env, void* reserved)
+{
+    blockingFilterClass = new JniGlobalReference<jclass>(env, env->FindClass("com/eyeo/ctu/BlockingFilter"));
+    blockingFilterCtor = env->GetMethodID(blockingFilterClass->Get(), "<init>", "(J)V");
+}
+
+void JniEngine_OnUnload(JavaVM* vm, JNIEnv* env, void* reserved)
+{
+    if (blockingFilterClass)
+    {
+        delete blockingFilterClass;
+        blockingFilterClass = nullptr;
+    }
+}
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
@@ -47,13 +67,32 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
 
 // ---
 
+Engine engine;
+
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_eyeo_ctu_Engine_matches(JNIEnv *env, jobject thiz,
-                                 jstring url,
+Java_com_eyeo_ctu_Engine_matches(JNIEnv *env,
+                                 jobject thiz,
+                                 jstring jUrl,
                                  jobject jContentTypes,
                                  jobject jDocumentUrls,
                                  jstring jSitekey,
-                                 jboolean jSpecificOnly) {
-    return nullptr; // TODO
+                                 jboolean jSpecificOnly)
+{
+    // map jni types to std types
+    auto url = JniJavaToStdString(env, jUrl);
+    auto contentTypes = 1; // for simplicity (not mapped from `jContentTypes`)
+    auto documentUrls = JavaStringListToStringVector(env, jDocumentUrls);
+    auto sitekey = JniJavaToStdString(env, jSitekey);
+    auto specificOnly = (jSpecificOnly == JNI_TRUE);
+
+    // actual call
+    auto filter = engine.matches(url, contentTypes, documentUrls, sitekey, specificOnly);
+
+    // map back from std to jni type
+    jobject jFilter = env->NewObject(blockingFilterClass->Get(), blockingFilterCtor, filter);
+
+    // Warning: that causes memory leak as filter is never released.
+    // Consider it not significant for benchmarking for now.
+    return jFilter;
 }
