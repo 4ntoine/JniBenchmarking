@@ -9,6 +9,8 @@ buildscript {
     classpath "com.android.tools.build:gradle:3.5.3"
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath "androidx.benchmark:benchmark-gradle-plugin:1.0.0"
+    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.14' // lite protobuf
+    classpath 'com.squareup.wire:wire-gradle-plugin:3.5.0' // wire protobuf
   }
 }
 

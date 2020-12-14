@@ -19,6 +19,7 @@
 #include "Engine.h"
 #include <string>
 #include <vector>
+#include <matches.pb.h>
 
 // precached in JNI_OnLoad and released in JNI_OnUnload
 JniGlobalReference<jclass>* blockingFilterClass;
@@ -83,17 +84,17 @@ Java_com_eyeo_ctu_Engine_matches(JNIEnv *env,
                                  jstring jSitekey,
                                  jboolean jSpecificOnly)
 {
-    // map jni types to std types
+    // 1. map jni types to std types
     auto url = JniJavaToStdString(env, jUrl);
     auto contentTypes = 1; // for simplicity (not mapped from `jContentTypes`)
     auto documentUrls = JavaStringListToStringVector(env, jDocumentUrls);
     auto sitekey = JniJavaToStdString(env, jSitekey);
     auto specificOnly = (jSpecificOnly == JNI_TRUE);
 
-    // actual call
+    // 2. process
     auto filter = engine.matches(url, contentTypes, documentUrls, sitekey, specificOnly);
 
-    // map back from std to jni type
+    // 3. map back from std to jni type
     jobject jFilter = env->NewObject(blockingFilterClass->Get(), blockingFilterCtor, filter);
 
     // Warning: that causes memory leak as filter is never released.
@@ -120,4 +121,52 @@ Java_com_eyeo_ctu_Engine_getListedSubscriptions(JNIEnv *env, jobject thiz) {
     // so consider listedSubscriptions ready to exclude from measurement
     // (populate it during onLoad())
     return SubscriptionsToArrayList(env, listedSubscriptions);
+}
+
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_com_eyeo_ctu_Engine_protoMatchesByteArray(JNIEnv *env, jobject thiz, jbyteArray jRequestByteArray)
+{
+    // 1. deserialize request
+    jbyte* pData = env->GetByteArrayElements(jRequestByteArray, NULL);
+    jsize pDataLen = env->GetArrayLength(jRequestByteArray);
+    com::eyeo::ctu::engine::MatchesRequest request;
+    request.ParseFromArray(pData, pDataLen);
+
+    std::vector<std::string> documentsUrls;
+    documentsUrls.reserve(request.documenturls_size());
+    for (int i = 0; i < request.documenturls_size(); i++)
+    {
+        documentsUrls.push_back(request.documenturls(i));
+    }
+
+    // 2. process
+    auto blockingFilter = engine.matches(
+            request.url(),
+            0, /* for simplicity */
+            documentsUrls,
+            request.sitekey(),
+            request.specificonly());
+
+    // 3. serialize response
+    com::eyeo::ctu::engine::MatchesResponse response;
+    response.mutable_filter()->set_pointer((uint64_t)blockingFilter->pointer());
+
+    int size = response.ByteSizeLong();
+    jbyte* temp = new jbyte[size];
+    response.SerializeToArray(temp, size);
+
+    jbyteArray jResponseByteArray = env->NewByteArray(size);
+    env->SetByteArrayRegion(jResponseByteArray, 0, size, temp);
+    delete[] temp;
+
+    return jResponseByteArray;
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_eyeo_ctu_Engine_protoMatchesByteBuffer(JNIEnv *env, jobject thiz, jobject jRequestByteBuffer)
+{
+    // TODO: implement protoMatchesBuffer()
+    return nullptr;
 }

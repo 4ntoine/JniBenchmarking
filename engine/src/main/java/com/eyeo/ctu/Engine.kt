@@ -17,6 +17,10 @@
 
 package com.eyeo.ctu
 
+import com.eyeo.ctu.engine.protobuf.MatchesRequest
+import com.eyeo.ctu.engine.protobuf.MatchesResponse
+import java.nio.ByteBuffer
+
 enum class ContentType {
     Image,
     Script,
@@ -39,6 +43,8 @@ class Engine {
         }
     }
 
+    // JNI
+
     external fun matches(url: String,
                          contentTypes: Set<ContentType>,
                          documentUrls: List<String>,
@@ -46,4 +52,11 @@ class Engine {
                          specificOnly: Boolean): Filter?
 
     external fun getListedSubscriptions(): List<String>
+
+    // protobuf
+
+    external fun protoMatchesByteArray(requestBytes: ByteArray): ByteArray?
+
+    external fun protoMatchesByteBuffer(requestBuffer: ByteBuffer): ByteBuffer?
+
 }

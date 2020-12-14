@@ -18,12 +18,20 @@
 #include "Engine.h"
 #include "Utils.h"
 
+
+BlockingFilter::BlockingFilter(int pointer): _pointer(pointer)
+{
+    // nothing
+};
+
 BlockingFilter* Engine::matches(const std::string& url,
                                 int contentTypeMask,
                                 const std::vector<std::string>& documentUrls,
                                 const std::string& siteKey,
                                 bool specificOnly)
 {
-    return new BlockingFilter();
+    // we consider the exact actions here insignificant,
+    // as it's needed for benchmarking only
+    return new BlockingFilter(url.size());
 }
 

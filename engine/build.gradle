@@ -1,6 +1,10 @@
 plugins {
   id 'com.android.library'
   id 'kotlin-android'
+
+  // protobuf
+  id 'com.google.protobuf'
+//  id 'com.squareup.wire'
 }
 
 android {
@@ -13,6 +17,12 @@ android {
     versionCode 1
     versionName "1.0"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    externalNativeBuild {
+      cmake {
+        arguments "-Dprotobuf_BUILD_TESTS=OFF"
+      }
+    }
   }
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
@@ -29,7 +39,30 @@ android {
 }
 
 dependencies {
+  api 'com.google.protobuf:protobuf-javalite:3.14.0' // lite for protobuf
+//  api "com.squareup.wire:wire-runtime:3.5.0" // sire for protobuf
   testImplementation 'junit:junit:4.13.1'
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'
   androidTestImplementation 'androidx.test:runner:1.3.0'
 }
+
+protobuf {
+  protoc {
+    artifact = 'com.google.protobuf:protoc:3.14.0'
+  }
+  generateProtoTasks {
+    all().each { task ->
+      task.builtins {
+        java {
+          option "lite"
+        }
+
+        cpp {}
+      }
+    }
+  }
+}
+
+//wire {
+//  kotlin {} // or `java {}`
+//}

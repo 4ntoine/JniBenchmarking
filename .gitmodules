@@ -1,0 +1,4 @@
+[submodule "protobuf"]
+	path = engine/libs/protobuf
+	url = git@github.com:protocolbuffers/protobuf.git
+	tag = v3.14.0

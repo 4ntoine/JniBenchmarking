@@ -23,6 +23,11 @@
 
 class BlockingFilter
 {
+public:
+    BlockingFilter(int pointer);
+    int pointer() { return _pointer; }
+private:
+    int _pointer;
 };
 
 class Engine
