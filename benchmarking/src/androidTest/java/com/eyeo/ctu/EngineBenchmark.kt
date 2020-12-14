@@ -41,4 +41,9 @@ class EngineBenchmark {
             null,
             true)
     }
+
+    @Test
+    fun testGetListedSubscriptions() = benchmarkRule.measureRepeated {
+        engine.getListedSubscriptions()
+    }
 }

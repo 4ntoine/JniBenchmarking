@@ -30,7 +30,7 @@ class BlockingFilter(val pointer: Long) : Filter()
 class ExceptionFilter : Filter()
 
 // subscription
-class Subscription(pointer: Long)
+class Subscription(url: String)
 
 class Engine {
     companion object {
@@ -45,5 +45,5 @@ class Engine {
                          siteKey: String?,
                          specificOnly: Boolean): Filter?
 
-    external fun getListedSubscriptions(): List<Subscription>
+    external fun getListedSubscriptions(): List<String>
 }

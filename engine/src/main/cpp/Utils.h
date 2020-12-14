@@ -191,4 +191,6 @@ inline jobjectArray JniGetStringArrayField(JNIEnv* env, jclass clazz, jobject jO
 
 std::vector<std::string> JavaStringListToStringVector(JNIEnv* env, jobject jList);
 
+jobject NewJniArrayList(JNIEnv* env);
+
 #endif

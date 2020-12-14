@@ -23,6 +23,7 @@
 // precached in JNI_OnLoad and released in JNI_OnUnload
 JniGlobalReference<jclass>* blockingFilterClass;
 jmethodID blockingFilterCtor;
+std::vector<std::string> listedSubscriptions;
 
 void JniEngine_OnLoad(JavaVM* vm, JNIEnv* env, void* reserved)
 {
@@ -49,6 +50,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
     JniUtils_OnLoad(vm, env, reserved);
     JniEngine_OnLoad(vm, env, reserved);
+
+    listedSubscriptions.push_back("https://easylist-downloads.adblockplus.org/easylist.txt");
+    listedSubscriptions.push_back("https://easylist-downloads.adblockplus.org/ruadlist+easylist.txt");
 
     return JNI_VERSION;
 }
@@ -95,4 +99,25 @@ Java_com_eyeo_ctu_Engine_matches(JNIEnv *env,
     // Warning: that causes memory leak as filter is never released.
     // Consider it not significant for benchmarking for now.
     return jFilter;
+}
+
+static jobject SubscriptionsToArrayList(JNIEnv* env, std::vector<std::string>& subscriptions)
+{
+    jobject list = NewJniArrayList(env);
+
+    for (auto &it : subscriptions)
+    {
+        JniAddObjectToList(env, list, JniStdStringToJava(env, it));
+    }
+
+    return list;
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_eyeo_ctu_Engine_getListedSubscriptions(JNIEnv *env, jobject thiz) {
+    // here we want to measure only de-/marshalling costs,
+    // so consider listedSubscriptions ready to exclude from measurement
+    // (populate it during onLoad())
+    return SubscriptionsToArrayList(env, listedSubscriptions);
 }

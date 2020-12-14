@@ -17,7 +17,7 @@
 
 package com.eyeo.ctu
 
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.*
 import org.junit.Test
 
 class EngineTest {
@@ -29,11 +29,21 @@ class EngineTest {
         val filter = engine.matches(
             "http://www.domain.com/someResource.html",
             setOf(ContentType.SubDocument),
-            listOf("http://www.domain.com/frame1.html", "http://www.domain.com/frame2.html"),
+            listOf(
+                "http://www.domain.com/frame1.html",
+                "http://www.domain.com/frame2.html",
+                "http://www.domain.com/frame3.html"),
             null,
             true)
         assertNotNull(filter)
         val blockingFilter = filter as BlockingFilter
         assertNotNull(blockingFilter.pointer)
+    }
+
+    @Test
+    fun testGetListedSubscriptions() {
+        val subscriptions = engine.getListedSubscriptions()
+        assertEquals(2, subscriptions.size)
+        assertTrue(subscriptions.first().startsWith("http://"))
     }
 }
