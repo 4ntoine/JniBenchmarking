@@ -17,7 +17,6 @@
 
 package com.eyeo.ctu
 
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
