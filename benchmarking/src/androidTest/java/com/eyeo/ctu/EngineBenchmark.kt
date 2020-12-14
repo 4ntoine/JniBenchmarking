@@ -34,7 +34,10 @@ class EngineBenchmark {
         engine.matches(
             "http://www.domain.com/someResource.html",
             setOf(ContentType.SubDocument),
-            listOf("http://www.domain.com/frame1.html", "http://www.domain.com/frame2.html"),
+            listOf(
+                "http://www.domain.com/frame1.html",
+                "http://www.domain.com/frame2.html",
+                "http://www.domain.com/frame3.html"),
             null,
             true)
     }
