@@ -20,7 +20,7 @@ android {
 
     externalNativeBuild {
       cmake {
-        arguments "-Dprotobuf_BUILD_TESTS=OFF"
+        arguments "-Dprotobuf_BUILD_TESTS=OFF", "-Dprotobuf_WITH_ZLIB=OFF"
         targets "libprotobuf-lite", "engine"
         // limit targets to only what we need
         // (we can consider using more heavyweight libprotobuf if we need)
