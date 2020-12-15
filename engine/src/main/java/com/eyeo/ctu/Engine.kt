@@ -55,6 +55,6 @@ class Engine {
 
     external fun protoMatchesByteArray(requestBytes: ByteArray): ByteArray?
 
-    external fun protoMatchesByteBuffer(requestBuffer: ByteBuffer): ByteBuffer?
+    external fun protoMatchesByteBuffer(requestBuffer: ByteBuffer): ByteArray?
 
 }

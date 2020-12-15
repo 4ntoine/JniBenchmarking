@@ -17,6 +17,7 @@
 
 package com.eyeo.ctu
 
+import com.squareup.wire.ProtoReader
 import com.eyeo.ctu.engine.protobuf.lite.MatchesRequest as LiteMatchesRequest
 import com.eyeo.ctu.engine.protobuf.lite.MatchesResponse as LiteMatchesResponse
 import com.eyeo.ctu.engine.protobuf.lite.ContentType as LiteContentType
@@ -25,6 +26,8 @@ import com.eyeo.ctu.engine.protobuf.wire.MatchesResponse as WireMatchesResponse
 import com.eyeo.ctu.engine.protobuf.wire.ContentType as WireContentType
 import org.junit.Assert.*
 import org.junit.Test
+import java.io.ByteArrayInputStream
+import java.nio.ByteBuffer
 
 class EngineTest {
 
@@ -55,7 +58,7 @@ class EngineTest {
 //    }
 
     @Test
-    fun testProtoMatches_lite() {
+    fun testProtoMatches_array_lite() {
         // serialization by "protobuf lite"
         val request = LiteMatchesRequest.newBuilder()
             .setUrl(URL)
@@ -73,7 +76,7 @@ class EngineTest {
     }
 
     @Test
-    fun testProtoMatches_wire() {
+    fun testProtoMatches_array_wire() {
         // serialization by "square wire"
         val request = WireMatchesRequest(
             url = URL,
@@ -86,6 +89,27 @@ class EngineTest {
             specificOnly = true)
         val requestByteArray = request.encode()
         val responseByteArray = engine.protoMatchesByteArray(requestByteArray)
+        assertNotNull(responseByteArray)
+        val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
+        assertEquals(URL.length.toLong(), response.filter?.pointer)
+    }
+
+    @Test
+    fun testProtoMatches_buffer_wire() {
+        // serialization by "square wire"
+        val request = WireMatchesRequest(
+            url = URL,
+            contentTypes = listOf(
+                WireContentType.SubDocument),
+            documentUrls = listOf(
+                "http://www.domain.com/frame1.html",
+                "http://www.domain.com/frame2.html",
+                "http://www.domain.com/frame3.html"),
+            specificOnly = true)
+        val requestByteArray = request.encode()
+        val requestByteBuffer = ByteBuffer.allocateDirect(requestByteArray.size)
+        requestByteBuffer.put(requestByteArray)
+        val responseByteArray = engine.protoMatchesByteBuffer(requestByteBuffer)
         assertNotNull(responseByteArray)
         val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
         assertEquals(URL.length.toLong(), response.filter?.pointer)

@@ -123,15 +123,11 @@ Java_com_eyeo_ctu_Engine_getListedSubscriptions(JNIEnv *env, jobject thiz) {
     return SubscriptionsToArrayList(env, listedSubscriptions);
 }
 
-extern "C"
-JNIEXPORT jbyteArray JNICALL
-Java_com_eyeo_ctu_Engine_protoMatchesByteArray(JNIEnv *env, jobject thiz, jbyteArray jRequestByteArray)
+static void matches(jbyte* requestBuffer, jsize requestBufferSize, jbyte* responseBuffer)
 {
     // 1. deserialize request
-    jbyte* pData = env->GetByteArrayElements(jRequestByteArray, NULL);
-    jsize pDataLen = env->GetArrayLength(jRequestByteArray);
     com::eyeo::ctu::engine::MatchesRequest request;
-    request.ParseFromArray(pData, pDataLen);
+    request.ParseFromArray(requestBuffer, requestBufferSize);
 
     std::vector<std::string> documentsUrls;
     documentsUrls.reserve(request.documenturls_size());
@@ -153,8 +149,22 @@ Java_com_eyeo_ctu_Engine_protoMatchesByteArray(JNIEnv *env, jobject thiz, jbyteA
     response.mutable_filter()->set_pointer((uint64_t)filter->pointer());
 
     int size = response.ByteSizeLong();
+    response.SerializeToArray(responseBuffer, size);
+}
+
+// warning: use protobuf descriptors or update if `MatchesResponse` is changed
+#define RESPONSE_SIZE 4
+
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_com_eyeo_ctu_Engine_protoMatchesByteArray(JNIEnv *env, jobject thiz, jbyteArray jRequestByteArray)
+{
+    jbyte* requestBuffer = env->GetByteArrayElements(jRequestByteArray, NULL);
+    jsize requestBufferSize = env->GetArrayLength(jRequestByteArray);
+    int size = RESPONSE_SIZE;
     jbyte* temp = new jbyte[size];
-    response.SerializeToArray(temp, size);
+
+    matches(requestBuffer, requestBufferSize, temp);
 
     jbyteArray jResponseByteArray = env->NewByteArray(size);
     env->SetByteArrayRegion(jResponseByteArray, 0, size, temp);
@@ -164,9 +174,19 @@ Java_com_eyeo_ctu_Engine_protoMatchesByteArray(JNIEnv *env, jobject thiz, jbyteA
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
+JNIEXPORT jbyteArray JNICALL
 Java_com_eyeo_ctu_Engine_protoMatchesByteBuffer(JNIEnv *env, jobject thiz, jobject jRequestByteBuffer)
 {
-    // TODO: implement protoMatchesBuffer()
-    return nullptr;
+    jbyte* requestBuffer = static_cast<jbyte*>(env->GetDirectBufferAddress(jRequestByteBuffer));
+    jsize requestBufferSize = env->GetDirectBufferCapacity(jRequestByteBuffer);
+    int size = RESPONSE_SIZE;
+    jbyte* temp = new jbyte[size];
+
+    matches(requestBuffer, requestBufferSize, temp);
+
+    jbyteArray jResponseByteArray = env->NewByteArray(size);
+    env->SetByteArrayRegion(jResponseByteArray, 0, size, temp);
+    delete[] temp;
+
+    return jResponseByteArray;
 }

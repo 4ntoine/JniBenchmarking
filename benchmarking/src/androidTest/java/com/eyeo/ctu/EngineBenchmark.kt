@@ -27,7 +27,7 @@ import com.eyeo.ctu.engine.protobuf.wire.MatchesResponse as WireMatchesResponse
 import com.eyeo.ctu.engine.protobuf.wire.ContentType as WireContentType
 import org.junit.Rule
 import org.junit.Test
-//import java.nio.ByteBuffer
+import java.nio.ByteBuffer
 
 class EngineBenchmark {
 
@@ -55,7 +55,7 @@ class EngineBenchmark {
 //    }
 
     @Test
-    fun testProtoMatchesByteArray_lite() = benchmarkRule.measureRepeated {
+    fun testProtoMatches_array_lite() = benchmarkRule.measureRepeated {
         // serialization by "protobuf lite"
         val request = LiteMatchesRequest.newBuilder()
             .setUrl("http://www.domain.com/someResource.html")
@@ -71,7 +71,7 @@ class EngineBenchmark {
     }
 
     @Test
-    fun testProtoMatchesByteArray_wire() = benchmarkRule.measureRepeated {
+    fun testProtoMatches_array_wire() = benchmarkRule.measureRepeated {
         // serialization by "square wire"
         val request = WireMatchesRequest(
             url = "http://www.domain.com/someResource.html",
@@ -89,20 +89,27 @@ class EngineBenchmark {
         val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
     }
 
-//    @Test
-//    fun testProtoMatchesByteBuffer() = benchmarkRule.measureRepeated {
-//        val request = MatchesRequest.newBuilder()
-//            .setUrl("http://www.domain.com/someResource.html")
-//            .setContentTypes(MatchesRequest.ContentType.Subdocument)
-//                .addDocumentUrls("http://www.domain.com/frame1.html")
-//                .addDocumentUrls("http://www.domain.com/frame2.html")
-//                .addDocumentUrls("http://www.domain.com/frame3.html")
-//            .setSpecificOnly(true)
-//            .build()
-//        val byteArray = request.toByteArray()
-//        val byteBuffer = ByteBuffer
-//            .allocateDirect(byteArray.size)
-//            .put(byteArray, 0, byteArray.size)
-//        engine.protoMatchesByteBuffer(byteBuffer)
-//    }
+    @Test
+    fun testProtoMatches_buffer_wire() = benchmarkRule.measureRepeated {
+        // serialization by "square wire"
+        val request = WireMatchesRequest(
+            url = "http://www.domain.com/someResource.html",
+            contentTypes = listOf(
+                WireContentType.SubDocument
+            ),
+            documentUrls = listOf(
+                "http://www.domain.com/frame1.html",
+                "http://www.domain.com/frame2.html",
+                "http://www.domain.com/frame3.html"
+            ),
+            specificOnly = true)
+
+        // TODO: serialize directly to DirectByteBuffer
+        val requestByteArray = request.encode()
+        val requestByteBuffer = ByteBuffer.allocateDirect(requestByteArray.size)
+        requestByteBuffer.put(requestByteArray)
+
+        val responseByteArray = engine.protoMatchesByteBuffer(requestByteBuffer)
+        val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
+    }
 }
