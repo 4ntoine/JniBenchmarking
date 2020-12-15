@@ -19,7 +19,7 @@ add_subdirectory( # Specifies the directory of the CMakeLists.txt file.
         ${PROTOBUF_BUILD_DIR} )
 
 # Adds the output of the additional CMake build as a prebuilt static
-# library and names it lib_gmath.
+# library and names it libprotobuf.
 include_directories( ${PROTOBUF_SRC_DIR}/../src )
 
 include_directories( ${MESSAGES_GEN_DIR} )
@@ -31,5 +31,5 @@ add_library(engine
             src/main/cpp/Engine.cpp
             build/generated/source/proto/debug/cpp/matches.pb.cc)
 
-# Links the top-level CMake build output against lib_gmath.
-target_link_libraries( engine libprotobuf )
+# Links the top-level CMake build output against libprotobuf.
+target_link_libraries( engine libprotobuf-lite )

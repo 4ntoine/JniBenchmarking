@@ -141,16 +141,16 @@ Java_com_eyeo_ctu_Engine_protoMatchesByteArray(JNIEnv *env, jobject thiz, jbyteA
     }
 
     // 2. process
-    auto blockingFilter = engine.matches(
+    auto filter = engine.matches(
             request.url(),
-            0, /* for simplicity */
+            1, /* for simplicity */
             documentsUrls,
             request.sitekey(),
             request.specificonly());
 
     // 3. serialize response
     com::eyeo::ctu::engine::MatchesResponse response;
-    response.mutable_filter()->set_pointer((uint64_t)blockingFilter->pointer());
+    response.mutable_filter()->set_pointer((uint64_t)filter->pointer());
 
     int size = response.ByteSizeLong();
     jbyte* temp = new jbyte[size];

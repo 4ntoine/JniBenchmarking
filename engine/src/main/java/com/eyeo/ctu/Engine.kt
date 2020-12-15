@@ -17,8 +17,6 @@
 
 package com.eyeo.ctu
 
-import com.eyeo.ctu.engine.protobuf.MatchesRequest
-import com.eyeo.ctu.engine.protobuf.MatchesResponse
 import java.nio.ByteBuffer
 
 enum class ContentType {

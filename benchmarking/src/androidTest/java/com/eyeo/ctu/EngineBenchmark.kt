@@ -19,12 +19,15 @@ package com.eyeo.ctu
 
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
-import com.eyeo.ctu.engine.protobuf.MatchesRequest
-import com.eyeo.ctu.engine.protobuf.MatchesResponse
-import com.eyeo.ctu.engine.protobuf.ContentType as ProtobufContentType
+import com.eyeo.ctu.engine.protobuf.lite.MatchesRequest as LiteMatchesRequest
+import com.eyeo.ctu.engine.protobuf.lite.MatchesResponse as LiteMatchesResponse
+import com.eyeo.ctu.engine.protobuf.lite.ContentType as LiteContentType
+import com.eyeo.ctu.engine.protobuf.wire.MatchesRequest as WireMatchesRequest
+import com.eyeo.ctu.engine.protobuf.wire.MatchesResponse as WireMatchesResponse
+import com.eyeo.ctu.engine.protobuf.wire.ContentType as WireContentType
 import org.junit.Rule
 import org.junit.Test
-import java.nio.ByteBuffer
+//import java.nio.ByteBuffer
 
 class EngineBenchmark {
 
@@ -34,7 +37,7 @@ class EngineBenchmark {
     val benchmarkRule = BenchmarkRule()
 
     @Test
-    fun testMatchesJni() = benchmarkRule.measureRepeated {
+    fun testMatches_jni() = benchmarkRule.measureRepeated {
         engine.matches(
             "http://www.domain.com/someResource.html",
             setOf(ContentType.SubDocument),
@@ -53,9 +56,10 @@ class EngineBenchmark {
 
     @Test
     fun testProtoMatchesByteArray_lite() = benchmarkRule.measureRepeated {
-        val request = MatchesRequest.newBuilder()
+        // serialization by "protobuf lite"
+        val request = LiteMatchesRequest.newBuilder()
             .setUrl("http://www.domain.com/someResource.html")
-            .addContentTypes(ProtobufContentType.Subdocument)
+            .addContentTypes(LiteContentType.SubDocument)
                 .addDocumentUrls("http://www.domain.com/frame1.html")
                 .addDocumentUrls("http://www.domain.com/frame2.html")
                 .addDocumentUrls("http://www.domain.com/frame3.html")
@@ -63,26 +67,27 @@ class EngineBenchmark {
             .build()
         val requestByteArray = request.toByteArray()
         val responseByteArray = engine.protoMatchesByteArray(requestByteArray)
-        val response = MatchesResponse.parseFrom(responseByteArray)
+        val response = LiteMatchesResponse.parseFrom(responseByteArray)
     }
 
-//    @Test
-//    fun testProtoMatchesByteArray_wire() = benchmarkRule.measureRepeated {
-//        // serialization by "wire:3.5.0"
-//        val request = MatchesRequest(
-//            url = "http://www.domain.com/someResource.html",
-//            contentTypes = listOf(
-//                ProtobufContentType.Subdocument
-//            ),
-//            documentUrls = listOf(
-//                "http://www.domain.com/frame1.html",
-//                "http://www.domain.com/frame2.html",
-//                "http://www.domain.com/frame3.html"
-//            ),
-//            specificOnly = true)
-//        val byteArray = request.encode()
-//        val response = engine.protoMatchesByteArray(byteArray)
-//    }
+    @Test
+    fun testProtoMatchesByteArray_wire() = benchmarkRule.measureRepeated {
+        // serialization by "square wire"
+        val request = WireMatchesRequest(
+            url = "http://www.domain.com/someResource.html",
+            contentTypes = listOf(
+                WireContentType.SubDocument
+            ),
+            documentUrls = listOf(
+                "http://www.domain.com/frame1.html",
+                "http://www.domain.com/frame2.html",
+                "http://www.domain.com/frame3.html"
+            ),
+            specificOnly = true)
+        val requestByteArray = request.encode()
+        val responseByteArray = engine.protoMatchesByteArray(requestByteArray)
+        val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
+    }
 
 //    @Test
 //    fun testProtoMatchesByteBuffer() = benchmarkRule.measureRepeated {

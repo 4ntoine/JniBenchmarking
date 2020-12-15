@@ -17,15 +17,19 @@
 
 package com.eyeo.ctu
 
-import com.eyeo.ctu.engine.protobuf.MatchesRequest
-import com.eyeo.ctu.engine.protobuf.MatchesResponse
-import com.eyeo.ctu.engine.protobuf.ContentType as ProtobufContentType
+import com.eyeo.ctu.engine.protobuf.lite.MatchesRequest as LiteMatchesRequest
+import com.eyeo.ctu.engine.protobuf.lite.MatchesResponse as LiteMatchesResponse
+import com.eyeo.ctu.engine.protobuf.lite.ContentType as LiteContentType
+import com.eyeo.ctu.engine.protobuf.wire.MatchesRequest as WireMatchesRequest
+import com.eyeo.ctu.engine.protobuf.wire.MatchesResponse as WireMatchesResponse
+import com.eyeo.ctu.engine.protobuf.wire.ContentType as WireContentType
 import org.junit.Assert.*
 import org.junit.Test
 
 class EngineTest {
 
     private val engine = Engine()
+    private val URL = "http://www.domain.com/someResource.html"
 
     @Test
     fun testMatches() {
@@ -53,10 +57,9 @@ class EngineTest {
     @Test
     fun testProtoMatches_lite() {
         // serialization by "protobuf lite"
-        val url = "http://www.domain.com/someResource.html"
-        val request = MatchesRequest.newBuilder()
-            .setUrl(url)
-            .addContentTypes(ProtobufContentType.Subdocument)
+        val request = LiteMatchesRequest.newBuilder()
+            .setUrl(URL)
+            .addContentTypes(LiteContentType.SubDocument)
                 .addDocumentUrls("http://www.domain.com/frame1.html")
                 .addDocumentUrls("http://www.domain.com/frame2.html")
                 .addDocumentUrls("http://www.domain.com/frame3.html")
@@ -64,22 +67,27 @@ class EngineTest {
             .build()
         val requestByteArray = request.toByteArray()
         val responseByteArray = engine.protoMatchesByteArray(requestByteArray)
-        val response = MatchesResponse.parseFrom(responseByteArray)
-        assertEquals(url.length, response.filter.pointer)
+        assertNotNull(responseByteArray)
+        val response = LiteMatchesResponse.parseFrom(responseByteArray)
+        assertEquals(URL.length.toLong(), response.filter.pointer)
     }
 
-//    @Test
-//    fun testProtoMatches_t() {
-//        // serialization by "wire:3.5.0"
-//        val request = MatchesRequest(
-//            url = "http://www.domain.com/someResource.html",
-//            contentTypes = MatchesRequest.ContentType.Subdocument,
-//            documentUrls = listOf(
-//                "http://www.domain.com/frame1.html",
-//                "http://www.domain.com/frame2.html",
-//                "http://www.domain.com/frame3.html"),
-//            specificOnly = true)
-//        val byteArray = request.encode()
-//        val response = engine.protoMatchesByteArray(byteArray)
-//    }
+    @Test
+    fun testProtoMatches_wire() {
+        // serialization by "square wire"
+        val request = WireMatchesRequest(
+            url = URL,
+            contentTypes = listOf(
+                WireContentType.SubDocument),
+            documentUrls = listOf(
+                "http://www.domain.com/frame1.html",
+                "http://www.domain.com/frame2.html",
+                "http://www.domain.com/frame3.html"),
+            specificOnly = true)
+        val requestByteArray = request.encode()
+        val responseByteArray = engine.protoMatchesByteArray(requestByteArray)
+        assertNotNull(responseByteArray)
+        val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
+        assertEquals(URL.length.toLong(), response.filter?.pointer)
+    }
 }
