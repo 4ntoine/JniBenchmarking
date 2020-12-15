@@ -34,4 +34,5 @@ NDK-based solutions (eg. C++ or Rust implementations) vs. multiplatform solution
 * [Android JNI tips](https://developer.android.com/training/articles/perf-jni)
 * [Best practices for using the Java Native Interface](https://developer.ibm.com/articles/j-jni/)
 * [Protobuf alternative to JNI](http://boyw165.github.io/android/2016/10/15/jni-and-protobuf.html)
+* [Protobuf performance](https://github.com/protocolbuffers/protobuf/blob/master/docs/performance.md)
 * [Djinni library](https://github.com/dropbox/djinni)
