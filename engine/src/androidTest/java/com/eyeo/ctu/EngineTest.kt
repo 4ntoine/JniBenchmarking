@@ -17,7 +17,6 @@
 
 package com.eyeo.ctu
 
-import com.squareup.wire.ProtoReader
 import com.eyeo.ctu.engine.protobuf.lite.MatchesRequest as LiteMatchesRequest
 import com.eyeo.ctu.engine.protobuf.lite.MatchesResponse as LiteMatchesResponse
 import com.eyeo.ctu.engine.protobuf.lite.ContentType as LiteContentType
@@ -26,7 +25,6 @@ import com.eyeo.ctu.engine.protobuf.wire.MatchesResponse as WireMatchesResponse
 import com.eyeo.ctu.engine.protobuf.wire.ContentType as WireContentType
 import org.junit.Assert.*
 import org.junit.Test
-import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 
 class EngineTest {
