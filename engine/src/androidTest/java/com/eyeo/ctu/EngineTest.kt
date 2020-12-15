@@ -114,4 +114,26 @@ class EngineTest {
         val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
         assertEquals(URL.length.toLong(), response.filter?.pointer)
     }
+
+    @Test
+    fun testProtoMatches_buffer_wire_withOutputStream() {
+        // serialization by "square wire"
+        val request = WireMatchesRequest(
+            url = URL,
+            contentTypes = listOf(
+                WireContentType.SubDocument),
+            documentUrls = listOf(
+                "http://www.domain.com/frame1.html",
+                "http://www.domain.com/frame2.html",
+                "http://www.domain.com/frame3.html"),
+            specificOnly = true)
+
+        val requestByteBuffer = ByteBuffer.allocateDirect(150)
+        // 150 is actual size measured with this params
+        request.encode(DirectByteBufferOutputStream(requestByteBuffer))
+        val responseByteArray = engine.protoMatchesByteBuffer(requestByteBuffer)
+        assertNotNull(responseByteArray)
+        val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
+        assertEquals(URL.length.toLong(), response.filter?.pointer)
+    }
 }

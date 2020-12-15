@@ -104,11 +104,9 @@ class EngineBenchmark {
             ),
             specificOnly = true)
 
-        // TODO: serialize directly to DirectByteBuffer
-        val requestByteArray = request.encode()
-        val requestByteBuffer = ByteBuffer.allocateDirect(requestByteArray.size)
-        requestByteBuffer.put(requestByteArray)
-
+        val requestByteBuffer = ByteBuffer.allocateDirect(150)
+        // 150 is actual size measured with this params
+        request.encode(DirectByteBufferOutputStream(requestByteBuffer))
         val responseByteArray = engine.protoMatchesByteBuffer(requestByteBuffer)
         val response = WireMatchesResponse.ADAPTER.decode(responseByteArray!!)
     }
