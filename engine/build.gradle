@@ -48,6 +48,10 @@ android {
       }
     }
   }
+
+  packagingOptions {
+    exclude "**/*.proto"
+  }
 }
 
 dependencies {

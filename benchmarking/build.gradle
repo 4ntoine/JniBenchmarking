@@ -32,6 +32,9 @@ android {
   kotlinOptions {
     jvmTarget = '1.8'
   }
+  packagingOptions {
+    exclude "**/*.proto"
+  }
 }
 
 dependencies {
@@ -42,4 +45,5 @@ dependencies {
   androidTestImplementation project(":calculator")
   androidTestImplementation project(":lib")
   androidTestImplementation project(":engine")
+  androidTestImplementation project(":rpc")
 }

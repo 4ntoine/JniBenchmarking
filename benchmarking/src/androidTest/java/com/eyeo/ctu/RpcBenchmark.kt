@@ -15,23 +15,24 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.eyeo.ctu.rpc
+package com.eyeo.ctu
 
-import com.eyeo.ctu.engine.protobuf.rpc.BlockingFilter
+import androidx.benchmark.junit4.BenchmarkRule
+import androidx.benchmark.junit4.measureRepeated
 import com.eyeo.ctu.engine.protobuf.rpc.EngineServiceGrpc
 import com.eyeo.ctu.engine.protobuf.rpc.MatchesRequest
 import com.eyeo.ctu.engine.protobuf.rpc.MatchesResponse
 import io.grpc.ManagedChannelBuilder
+import com.eyeo.ctu.engine.protobuf.rpc.BlockingFilter as RpcBlockingFilter
 import io.grpc.Server
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import io.grpc.stub.StreamObserver
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.After
+import org.junit.Before
 
-class AndroidRpcTest {
+class RpcBenchmark {
     companion object {
         const val PORT = 7777
     }
@@ -42,11 +43,11 @@ class AndroidRpcTest {
             request: MatchesRequest,
             responseObserver: StreamObserver<MatchesResponse>
         ) {
+            // no server-side logic (just to measure the RPC performance)
             val response = MatchesResponse
                 .newBuilder()
-                .setFilter(BlockingFilter
+                .setFilter(RpcBlockingFilter
                     .newBuilder()
-                    .setPointer(request.url.length.toLong()) // server logic: just for the test
                     .build())
                 .build()
             responseObserver.onNext(response)
@@ -55,6 +56,9 @@ class AndroidRpcTest {
     }
 
     private lateinit var server: Server
+
+    @get:Rule
+    val benchmarkRule = BenchmarkRule()
 
     @Before
     fun setUp() {
@@ -71,7 +75,9 @@ class AndroidRpcTest {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse() {
+    fun testSendRequestAndReceiveResponse_pureRpc() {
+        // assume channel is created once and reused across the calls,
+        // so it's excluded from measured part
         val channel = ManagedChannelBuilder
             .forAddress("localhost", PORT)
             .usePlaintext()
@@ -83,8 +89,9 @@ class AndroidRpcTest {
             .newBuilder()
             .setUrl(url)
             .build()
-        val response = service.matches(request)
-        assertNotNull(response)
-        assertEquals(url.length.toLong(), response.filter.pointer) // just to check the server logic
+
+        benchmarkRule.measureRepeated {
+            val response = service.matches(request)
+        }
     }
 }

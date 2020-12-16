@@ -1,7 +1,9 @@
 syntax = "proto3";
 
 package com.eyeo.ctu.engine;
-option java_package = "com.eyeo.ctu.engine.protobuf.lite";
+// in contrast to "engine" module we change the Java package to ".rpc"
+// to avoid conflicts in  "benchmarking" module
+option java_package = "com.eyeo.ctu.engine.protobuf.rpc";
 option java_multiple_files = true;
 // optimize_for = LITE_RUNTIME is deprecated and thus not used here
 // (https://github.com/protocolbuffers/protobuf/blob/v3.9.0/java/lite.md)
