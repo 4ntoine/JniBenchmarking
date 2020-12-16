@@ -3,8 +3,8 @@ plugins {
   id 'kotlin-android'
 
   // protobuf
-   id 'com.google.protobuf'
-//  id 'com.squareup.wire'
+  id 'com.google.protobuf'
+  id 'com.squareup.wire'
 }
 
 android {
@@ -46,7 +46,8 @@ dependencies {
   api("com.google.protobuf:protobuf-javalite:$protocVersion") { // lite for protobuf
     exclude module: "protobuf-lite"
   }
-//  api "com.squareup.wire:wire-runtime:3.5.0" // wire for protobuf
+  api "com.squareup.wire:wire-runtime:3.5.0" // wire for protobuf
+  api "com.squareup.wire:wire-grpc-client:3.5.0" // wire for protobuf (client)
   api "io.grpc:grpc-protobuf-lite:$grpcVersion"
   api "io.grpc:grpc-core:$grpcVersion"
   api "io.grpc:grpc-stub:$grpcVersion"
@@ -91,10 +92,13 @@ protobuf {
   }
 }
 
-// wire {
-//   sourcePath {
-//     srcDir 'src/main/proto_wire'
-//   }
+ wire {
+   sourcePath {
+     srcDir 'src/main/proto_wire'
+   }
 
-//   kotlin { } // or `java {}`
-// }
+   kotlin {
+     rpcCallStyle = 'blocking'
+     rpcRole = 'client'
+   } // or `java {}`
+ }

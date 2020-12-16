@@ -17,23 +17,30 @@
 
 package com.eyeo.ctu.rpc
 
-import com.eyeo.ctu.engine.protobuf.lite.BlockingFilter
-import com.eyeo.ctu.engine.protobuf.lite.EngineServiceGrpc
-import com.eyeo.ctu.engine.protobuf.lite.MatchesRequest
-import com.eyeo.ctu.engine.protobuf.lite.MatchesResponse
+import com.eyeo.ctu.engine.protobuf.rpc.lite.BlockingFilter
+import com.eyeo.ctu.engine.protobuf.rpc.lite.EngineServiceGrpc
+import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesRequest
+import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesResponse
+import com.eyeo.ctu.engine.protobuf.rpc.wire.MatchesRequest as WireMatchesRequest
+import com.eyeo.ctu.engine.protobuf.rpc.wire.EngineServiceClient
+import com.squareup.wire.GrpcClient
+import io.grpc.ManagedChannel
 import io.grpc.Server
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import io.grpc.stub.StreamObserver
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 
-class JdkRpcTest {
+class JdkRpcLiteTest {
     companion object {
         const val PORT = 7777
+        const val URL = "http://www.domain.com"
     }
 
     // service impl
@@ -55,12 +62,13 @@ class JdkRpcTest {
     }
 
     private lateinit var server: Server
+    private val service = EngineServiceImpl()
 
     @Before
     fun setUp() {
         server = NettyServerBuilder // have to use Netty.. explicitly (instead of Managed..)
             .forPort(PORT)
-            .addService(EngineServiceImpl())
+            .addService(service)
             .build()
         server.start()
     }
@@ -70,21 +78,40 @@ class JdkRpcTest {
         server.shutdownNow()
     }
 
+    private fun test(channel: ManagedChannel) {
+        val service = EngineServiceGrpc.newBlockingStub(channel)
+        val request = MatchesRequest
+            .newBuilder()
+            .setUrl(URL)
+            .build()
+        val response = service.matches(request)
+        assertNotNull(response)
+        assertEquals(URL.length.toLong(), response.filter.pointer) // just to check the server logic
+    }
+
     @Test
-    fun testSendRequestAndReceiveResponse() {
+    fun testSendRequestAndReceiveResponse_http_lite() {
         val channel = NettyChannelBuilder // have to use Netty.. explicitly (instead of Managed..)
             .forAddress("localhost", PORT)
             .usePlaintext()
             .build()
-        val service = EngineServiceGrpc.newBlockingStub(channel)
+        test(channel)
+    }
 
-        val url = "http://www.domain.com"
-        val request = MatchesRequest
-            .newBuilder()
-            .setUrl(url)
+    @Test
+    fun testSendRequestAndReceiveResponse_http_wire() {
+        val grpcClient = GrpcClient.Builder()
+            .client(
+                OkHttpClient.Builder()
+                .protocols(listOf(Protocol.H2_PRIOR_KNOWLEDGE))
+                .build())
+            .baseUrl("http://localhost:$PORT")
             .build()
-        val response = service.matches(request)
+
+        val client = grpcClient.create(EngineServiceClient::class)
+        val request = WireMatchesRequest(url = URL)
+        val response = client.matches().executeBlocking(request)
         assertNotNull(response)
-        assertEquals(url.length.toLong(), response.filter.pointer) // just to check the server logic
+        assertEquals(URL.length.toLong(), response.filter!!.pointer)
     }
 }

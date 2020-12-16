@@ -71,7 +71,25 @@ class AndroidRpcTest {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse() {
+    fun testSendRequestAndReceiveResponse_lite() {
+        val channel = ManagedChannelBuilder
+            .forAddress("localhost", PORT)
+            .usePlaintext()
+            .build()
+        val service = EngineServiceGrpc.newBlockingStub(channel)
+
+        val url = "http://www.domain.com"
+        val request = MatchesRequest
+            .newBuilder()
+            .setUrl(url)
+            .build()
+        val response = service.matches(request)
+        assertNotNull(response)
+        assertEquals(url.length.toLong(), response.filter.pointer) // just to check the server logic
+    }
+
+    @Test
+    fun testSendRequestAndReceiveResponse_wire() {
         val channel = ManagedChannelBuilder
             .forAddress("localhost", PORT)
             .usePlaintext()
