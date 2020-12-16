@@ -41,7 +41,7 @@ android {
   }
 }
 
-def grpcVersion = "1.34.0"
+def grpcVersion = "1.34.1"
 def protocVersion = "3.14.0"
 
 dependencies {
@@ -52,7 +52,6 @@ dependencies {
   api "io.grpc:grpc-protobuf-lite:$grpcVersion"
   api "io.grpc:grpc-core:$grpcVersion"
   api "io.grpc:grpc-stub:$grpcVersion"
-  api "io.grpc:grpc-auth:$grpcVersion"
   implementation 'javax.annotation:javax.annotation-api:1.3.2'
 
   testImplementation 'junit:junit:4.13.1'
@@ -60,6 +59,8 @@ dependencies {
 
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'
   androidTestImplementation 'androidx.test:runner:1.3.0'
+  androidTestImplementation "io.grpc:grpc-okhttp:${grpcVersion}" // for client
+  androidTestImplementation "io.grpc:grpc-netty-shaded:${grpcVersion}" // for server
 }
 
 protobuf {

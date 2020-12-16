@@ -31,7 +31,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 
-class RpcTest {
+class JdkRpcTest {
     companion object {
         const val PORT = 7777
     }
