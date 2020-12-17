@@ -25,9 +25,12 @@ import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesResponse as LiteMatchesRespo
 import com.eyeo.ctu.engine.protobuf.rpc.wire.MatchesRequest as WireMatchesRequest
 import com.eyeo.ctu.engine.protobuf.rpc.wire.EngineServiceClient
 import com.squareup.wire.GrpcClient
+import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import com.eyeo.ctu.engine.protobuf.rpc.lite.BlockingFilter as RpcBlockingFilter
 import io.grpc.Server
+import io.grpc.inprocess.InProcessChannelBuilder
+import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import io.grpc.stub.StreamObserver
 import okhttp3.OkHttpClient
@@ -39,7 +42,8 @@ import org.junit.Before
 
 class RpcBenchmark {
     companion object {
-        const val PORT = 7777
+        const val JAVA_PORT = 7777
+        const val JAVA_INPROCESS_CHANNEL = "ABP"
         const val URL = "http://www.domain.com"
     }
 
@@ -61,7 +65,8 @@ class RpcBenchmark {
         }
     }
 
-    private lateinit var server: Server
+    private lateinit var javaSocketServer: Server
+    private lateinit var javaInProcessServer: Server
     private val engineService = EngineServiceImpl()
 
     @get:Rule
@@ -69,28 +74,36 @@ class RpcBenchmark {
 
     @Before
     fun setUp() {
-        server = NettyServerBuilder // have to use Netty.. explicitly (instead of Managed..)
-            .forPort(PORT)
+        setUpSocketServer()
+        setUpInProcessServer()
+    }
+
+    private fun setUpInProcessServer() {
+        javaInProcessServer = InProcessServerBuilder
+            .forName(JAVA_INPROCESS_CHANNEL)
             .addService(engineService)
             .build()
-        server.start()
+        javaInProcessServer.start()
+    }
+
+    private fun setUpSocketServer() {
+        javaSocketServer = NettyServerBuilder // have to use Netty.. explicitly (instead of Managed..)
+            .forPort(JAVA_PORT)
+            .addService(engineService)
+            .build()
+        javaSocketServer.start()
     }
 
     @After
     fun tearDown() {
-        server.shutdownNow()
+        javaSocketServer.shutdownNow()
+        javaInProcessServer.shutdownNow()
     }
 
-    @Test
-    fun testSendRequestAndReceiveResponse_pureRpc_lite() {
+    private fun measure(channel: ManagedChannel) {
         // assume channel is created once and reused across the calls,
         // so it's excluded from measured part
-        val channel = ManagedChannelBuilder
-            .forAddress("localhost", PORT)
-            .usePlaintext()
-            .build()
         val service = EngineServiceGrpc.newBlockingStub(channel)
-
         val request = LiteMatchesRequest
             .newBuilder()
             .setUrl(URL)
@@ -102,13 +115,31 @@ class RpcBenchmark {
     }
 
     @Test
+    fun testSendRequestAndReceiveResponse_pureRpc_socket_lite() {
+        val channel = ManagedChannelBuilder
+            .forAddress("localhost", JAVA_PORT)
+            .usePlaintext()
+            .build()
+        measure(channel)
+    }
+
+    @Test
+    fun testSendRequestAndReceiveResponse_pureRpc_inProcess_lite() {
+        val channel = InProcessChannelBuilder
+            .forName(JAVA_INPROCESS_CHANNEL)
+            .usePlaintext()
+            .build()
+        measure(channel)
+    }
+
+    @Test
     fun testSendRequestAndReceiveResponse_pureRpc_wire() {
         val grpcClient = GrpcClient.Builder()
             .client(
                 OkHttpClient.Builder()
                 .protocols(listOf(Protocol.H2_PRIOR_KNOWLEDGE))
                 .build())
-            .baseUrl("http://localhost:${PORT}")
+            .baseUrl("http://localhost:${JAVA_PORT}")
             .build()
 
         val client = grpcClient.create(EngineServiceClient::class)
