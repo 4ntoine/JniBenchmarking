@@ -38,6 +38,7 @@ android {
         arguments '-DRUN_HAVE_STEADY_CLOCK=0'
         arguments '-Dprotobuf_BUILD_PROTOC_BINARIES=off'
         arguments '-DgRPC_BUILD_CODEGEN=off'
+        arguments '-DgRPC_USE_PROTO_LITE=on'
         arguments '-Dlibrpc_PROTOBUF_PROTOC_EXECUTABLE=' + protoc
         arguments '-Dlibrpc_GRPC_CPP_PLUGIN_EXECUTABLE=' + grpc_cpp_plugin
       }

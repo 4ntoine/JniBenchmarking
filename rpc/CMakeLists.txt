@@ -69,24 +69,23 @@ android_protobuf_grpc_generate_cpp(
         HELLOWORLD_PROTO_SRCS HELLOWORLD_PROTO_HDRS ${PROTO_BASE_DIR} ${PROTO_BASE_DIR}/matches.proto)
 
 add_library(rpc_proto_lib
-        SHARED ${HELLOWORLD_PROTO_HDRS} ${HELLOWORLD_PROTO_SRCS})
+            SHARED
+            ${HELLOWORLD_PROTO_HDRS}
+            ${HELLOWORLD_PROTO_SRCS})
 
 target_link_libraries(rpc_proto_lib
-        grpc++
-        libprotobuf
-        android
-        log)
-
-find_library(log-lib
-        log)
+                      grpc++
+                      libprotobuf-lite
+                      android)
 
 add_library(rpc
-        SHARED src/main/cpp/librpc.cpp)
+            SHARED
+            src/main/cpp/librpc.cpp)
 
 target_include_directories(rpc
-        PRIVATE ${HELLOWORLD_PROTO_HEADERS})
+                           PRIVATE
+                           ${HELLOWORLD_PROTO_HEADERS})
 
 target_link_libraries(rpc
-        rpc_proto_lib
-        android
-        ${log-lib})
+                      rpc_proto_lib
+                      android)
