@@ -17,6 +17,31 @@ android {
     versionCode 1
     versionName "1.0"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    // Warning: make sure you have `/usr/local/bin/grpc_cpp_plugin` installed
+    // eg. `brew install grpc` to install it on mac
+    // also make sure you switch to protobuf v1.34.0 in `grpc/third_parties/protobuf` manually
+    // (by default for grpc 3.14 it's protobuf 1.33.0 and it fails during the compilation).
+    externalNativeBuild {
+      cmake {
+        // The paths to the protoc and grpc_cpp_plugin binaries on the host system (codegen
+        // is not cross-compiled to Android)
+        def protoc = project.hasProperty('protoc') ?
+                project.property('protoc') : '/usr/local/bin/protoc'
+        def grpc_cpp_plugin = project.hasProperty('grpc_cpp_plugin') ?
+                project.property('grpc_cpp_plugin') : '/usr/local/bin/grpc_cpp_plugin'
+
+        cppFlags "-std=c++14 -frtti -fexceptions"
+        arguments '-DANDROID_STL=c++_static'
+        arguments '-DRUN_HAVE_POSIX_REGEX=0'
+        arguments '-DRUN_HAVE_STD_REGEX=0'
+        arguments '-DRUN_HAVE_STEADY_CLOCK=0'
+        arguments '-Dprotobuf_BUILD_PROTOC_BINARIES=off'
+        arguments '-DgRPC_BUILD_CODEGEN=off'
+        arguments '-Dlibrpc_PROTOBUF_PROTOC_EXECUTABLE=' + protoc
+        arguments '-Dlibrpc_GRPC_CPP_PLUGIN_EXECUTABLE=' + grpc_cpp_plugin
+      }
+    }
   }
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
@@ -25,6 +50,13 @@ android {
   kotlinOptions {
     jvmTarget = '1.8'
   }
+
+  externalNativeBuild {
+    cmake {
+      path 'CMakeLists.txt'
+    }
+  }
+
   // configuration for protobuf-lite
   sourceSets {
     main {
@@ -39,7 +71,7 @@ android {
   }
 }
 
-def grpcVersion = "1.34.1"
+def grpcVersion = "1.34.0"
 def protocVersion = "3.14.0"
 
 dependencies {
@@ -57,7 +89,6 @@ dependencies {
 
   testImplementation 'junit:junit:4.13.1'
   testImplementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
-  testImplementation "io.netty:netty-transport-native-epoll:4.1.55.Final" // for Unix sockets
 
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'
   androidTestImplementation 'androidx.test:runner:1.3.0'
@@ -81,6 +112,10 @@ protobuf {
         java {
           option "lite"
         }
+        // c++ side is generated during ":rpc:externalNativeBuildDebug" and CMake working
+//        cpp {
+//          option "lite" // keep in sync with what libprotobuf is used when linking (-lite vs. regular)
+//        }
       }
 
       task.plugins {

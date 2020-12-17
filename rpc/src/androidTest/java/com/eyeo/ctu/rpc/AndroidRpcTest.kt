@@ -17,10 +17,10 @@
 
 package com.eyeo.ctu.rpc
 
-import com.eyeo.ctu.engine.protobuf.rpc.BlockingFilter
-import com.eyeo.ctu.engine.protobuf.rpc.EngineServiceGrpc
-import com.eyeo.ctu.engine.protobuf.rpc.MatchesRequest
-import com.eyeo.ctu.engine.protobuf.rpc.MatchesResponse
+import com.eyeo.ctu.engine.protobuf.rpc.lite.BlockingFilter
+import com.eyeo.ctu.engine.protobuf.rpc.lite.EngineServiceGrpc
+import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesRequest
+import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesResponse
 import io.grpc.ManagedChannelBuilder
 import io.grpc.Server
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
@@ -33,7 +33,8 @@ import org.junit.Test
 
 class AndroidRpcTest {
     companion object {
-        const val PORT = 7777
+        const val JAVA_PORT = 7777
+        const val CPP_PORT = 7778
     }
 
     // service impl
@@ -54,26 +55,56 @@ class AndroidRpcTest {
         }
     }
 
-    private lateinit var server: Server
+    private lateinit var javaServer: Server
+    private lateinit var cppServer: Rpc
 
     @Before
     fun setUp() {
-        server = NettyServerBuilder // have to use Netty.. explicitly (instead of Managed..)
-            .forPort(PORT)
+        setUpJava()
+        setUpCpp()
+    }
+
+    private fun setUpCpp() {
+        cppServer = Rpc(CPP_PORT)
+        cppServer.start()
+    }
+
+    private fun setUpJava() {
+        javaServer = NettyServerBuilder // have to use Netty.. explicitly (instead of Managed..)
+            .forPort(JAVA_PORT)
             .addService(EngineServiceImpl())
             .build()
-        server.start()
+        javaServer.start()
     }
 
     @After
     fun tearDown() {
-        server.shutdownNow()
+        javaServer.shutdownNow()
+        cppServer.shutdownNow()
     }
 
     @Test
     fun testSendRequestAndReceiveResponse_lite() {
         val channel = ManagedChannelBuilder
-            .forAddress("localhost", PORT)
+            .forAddress("localhost", JAVA_PORT)
+            .usePlaintext()
+            .build()
+        val service = EngineServiceGrpc.newBlockingStub(channel)
+
+        val url = "http://www.domain.com"
+        val request = MatchesRequest
+            .newBuilder()
+            .setUrl(url)
+            .build()
+        val response = service.matches(request)
+        assertNotNull(response)
+        assertEquals(url.length.toLong(), response.filter.pointer) // just to check the server logic
+    }
+
+    @Test
+    fun testSendRequestAndReceiveResponse_lite_cpp() {
+        val channel = ManagedChannelBuilder
+            .forAddress("localhost", CPP_PORT)
             .usePlaintext()
             .build()
         val service = EngineServiceGrpc.newBlockingStub(channel)
@@ -91,7 +122,7 @@ class AndroidRpcTest {
     @Test
     fun testSendRequestAndReceiveResponse_wire() {
         val channel = ManagedChannelBuilder
-            .forAddress("localhost", PORT)
+            .forAddress("localhost", JAVA_PORT)
             .usePlaintext()
             .build()
         val service = EngineServiceGrpc.newBlockingStub(channel)
