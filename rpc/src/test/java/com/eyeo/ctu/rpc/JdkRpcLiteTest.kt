@@ -28,6 +28,9 @@ import io.grpc.ManagedChannel
 import io.grpc.Server
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollDomainSocketChannel
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollEventLoopGroup
+import io.grpc.netty.shaded.io.netty.channel.unix.DomainSocketAddress
 import io.grpc.stub.StreamObserver
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -61,8 +64,8 @@ class JdkRpcLiteTest {
         }
     }
 
-    private lateinit var server: Server
     private val service = EngineServiceImpl()
+    private lateinit var server: Server
 
     @Before
     fun setUp() {
@@ -90,7 +93,7 @@ class JdkRpcLiteTest {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_http_lite() {
+    fun testSendRequestAndReceiveResponse_tcp_lite() {
         val channel = NettyChannelBuilder // have to use Netty.. explicitly (instead of Managed..)
             .forAddress("localhost", PORT)
             .usePlaintext()
@@ -99,7 +102,7 @@ class JdkRpcLiteTest {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_http_wire() {
+    fun testSendRequestAndReceiveResponse_tcp_wire() {
         val grpcClient = GrpcClient.Builder()
             .client(
                 OkHttpClient.Builder()
