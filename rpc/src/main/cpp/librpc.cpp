@@ -46,17 +46,29 @@ class EngineServiceImpl final : public EngineService::Service
 std::unique_ptr<Server> server;
 EngineServiceImpl service;
 
+std::string JniJavaToStdString(JNIEnv* env, jstring str)
+{
+    if (!str)
+    {
+        return std::string();
+    }
+
+    const char* cStr = env->GetStringUTFChars(str, 0);
+    std::string ret(cStr);
+    env->ReleaseStringUTFChars(str, cStr);
+
+    return ret;
+}
+
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_eyeo_ctu_rpc_Rpc_nativeStart(JNIEnv *env, jobject thiz, jint port)
+Java_com_eyeo_ctu_rpc_Rpc_start(JNIEnv *env, jobject thiz, jstring jAddress)
 {
-    const int host_port_buf_size = 32;
-    char host_port[host_port_buf_size];
-    snprintf(host_port, host_port_buf_size, "0.0.0.0:%d", port);
+    auto addr_uri = JniJavaToStdString(env, jAddress);
 
     ServerBuilder builder;
     // Listen on the given address without any authentication mechanism.
-    builder.AddListeningPort(host_port, grpc::InsecureServerCredentials());
+    builder.AddListeningPort(addr_uri, grpc::InsecureServerCredentials());
     // Register "service" as the instance through which we'll communicate with
     // clients. In this case it corresponds to an *synchronous* service.
     builder.RegisterService(&service);

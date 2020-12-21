@@ -26,7 +26,11 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.Server
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollDomainSocketChannel
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollEventLoopGroup
+import io.grpc.netty.shaded.io.netty.channel.unix.DomainSocketAddress
 import io.grpc.stub.StreamObserver
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -34,10 +38,12 @@ import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 
+
 class AndroidRpcTest {
     companion object {
         const val JAVA_PORT = 7777
-        const val JAVA_INPROCESS_CHANNEL = "ABP"
+        const val JAVA_INPROCESS_CHANNEL_NAME = "ABP"
+        const val UNIX_SOCKET = "ABP"
         const val CPP_PORT = 7778
     }
 
@@ -49,10 +55,12 @@ class AndroidRpcTest {
         ) {
             val response = MatchesResponse
                 .newBuilder()
-                .setFilter(BlockingFilter
-                    .newBuilder()
-                    .setPointer(request.url.length.toLong()) // server logic: just for the test
-                    .build())
+                .setFilter(
+                    BlockingFilter
+                        .newBuilder()
+                        .setPointer(request.url.length.toLong()) // server logic: just for the test
+                        .build()
+                )
                 .build()
             responseObserver.onNext(response)
             responseObserver.onCompleted()
@@ -60,9 +68,10 @@ class AndroidRpcTest {
     }
 
     private val engineService = EngineServiceImpl()
-    private lateinit var javaSocketServer: Server
+    private lateinit var javaTcpSocketServer: Server
     private lateinit var javaInProcessServer: Server
-    private lateinit var cppServer: Rpc
+    private lateinit var cppTcpSocketServer: Rpc
+    private lateinit var cppUnixDomainSocketServer: Rpc
 
     @Before
     fun setUp() {
@@ -71,36 +80,49 @@ class AndroidRpcTest {
     }
 
     private fun setUpCpp() {
-        cppServer = Rpc(CPP_PORT)
-        cppServer.start()
+        setUpCppTcpSocketServer()
+        setUpCppUnixDomainSocketServer()
+    }
+
+    private fun setUpCppUnixDomainSocketServer() {
+        cppUnixDomainSocketServer = Rpc.forUnixDomainSocket(UNIX_SOCKET)
+        cppUnixDomainSocketServer.start()
+    }
+
+    private fun setUpCppTcpSocketServer() {
+        cppTcpSocketServer = Rpc.forTcpPort(CPP_PORT)
+        cppTcpSocketServer.start()
     }
 
     private fun setUpJava() {
-        setUpSocketServer()
+        setUpTcpSocketServer()
         setUpInProcessServer()
     }
 
     private fun setUpInProcessServer() {
         javaInProcessServer = InProcessServerBuilder
-            .forName(JAVA_INPROCESS_CHANNEL)
+            .forName(JAVA_INPROCESS_CHANNEL_NAME)
             .addService(engineService)
+            .directExecutor()
             .build()
         javaInProcessServer.start()
     }
 
-    private fun setUpSocketServer() {
-        javaSocketServer = NettyServerBuilder // have to use Netty.. explicitly (instead of Managed..)
+    private fun setUpTcpSocketServer() {
+        javaTcpSocketServer = NettyServerBuilder // have to use Netty.. explicitly (instead of Managed..)
             .forPort(JAVA_PORT)
             .addService(engineService)
+            .directExecutor()
             .build()
-        javaSocketServer.start()
+        javaTcpSocketServer.start()
     }
 
     @After
     fun tearDown() {
-        javaSocketServer.shutdownNow()
+        javaTcpSocketServer.shutdownNow()
         javaInProcessServer.shutdownNow()
-        cppServer.shutdownNow()
+        cppTcpSocketServer.shutdownNow()
+        cppUnixDomainSocketServer.shutdownNow()
     }
 
     private fun test(channel: ManagedChannel) {
@@ -116,10 +138,11 @@ class AndroidRpcTest {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_http_lite() {
+    fun testSendRequestAndReceiveResponse_tcp_lite() {
         val channel = ManagedChannelBuilder
             .forAddress("localhost", JAVA_PORT)
             .usePlaintext()
+            .directExecutor()
             .build()
         test(channel)
     }
@@ -127,45 +150,39 @@ class AndroidRpcTest {
     @Test
     fun testSendRequestAndReceiveResponse_inProcess_lite() {
         val channel = InProcessChannelBuilder
-            .forName(JAVA_INPROCESS_CHANNEL)
+            .forName(JAVA_INPROCESS_CHANNEL_NAME)
+            .usePlaintext()
+            .directExecutor()
+            .build()
+        test(channel)
+    }
+
+    @Test
+    fun testSendRequestAndReceiveResponse_unixDomainSocket_lite_cpp() {
+        val channel = NettyChannelBuilder
+            .forAddress(DomainSocketAddress(UNIX_SOCKET))
+            .eventLoopGroup(EpollEventLoopGroup())
+            .channelType(EpollDomainSocketChannel::class.java)
+            .directExecutor()
+            .build()
+        test(channel)
+    }
+
+    @Test
+    fun testSendRequestAndReceiveResponse_socket_lite_cpp() {
+        val channel = ManagedChannelBuilder
+            .forAddress("localhost", CPP_PORT)
             .usePlaintext()
             .build()
         test(channel)
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_lite_cpp() {
-        val channel = ManagedChannelBuilder
-            .forAddress("localhost", CPP_PORT)
-            .usePlaintext()
-            .build()
-        val service = EngineServiceGrpc.newBlockingStub(channel)
-
-        val url = "http://www.domain.com"
-        val request = MatchesRequest
-            .newBuilder()
-            .setUrl(url)
-            .build()
-        val response = service.matches(request)
-        assertNotNull(response)
-        assertEquals(url.length.toLong(), response.filter.pointer) // just to check the server logic
-    }
-
-    @Test
-    fun testSendRequestAndReceiveResponse_wire() {
+    fun testSendRequestAndReceiveResponse_socket_wire_java() {
         val channel = ManagedChannelBuilder
             .forAddress("localhost", JAVA_PORT)
             .usePlaintext()
             .build()
-        val service = EngineServiceGrpc.newBlockingStub(channel)
-
-        val url = "http://www.domain.com"
-        val request = MatchesRequest
-            .newBuilder()
-            .setUrl(url)
-            .build()
-        val response = service.matches(request)
-        assertNotNull(response)
-        assertEquals(url.length.toLong(), response.filter.pointer) // just to check the server logic
+        test(channel)
     }
 }

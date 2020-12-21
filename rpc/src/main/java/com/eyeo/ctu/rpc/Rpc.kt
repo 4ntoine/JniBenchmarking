@@ -17,15 +17,18 @@
 
 package com.eyeo.ctu.rpc
 
-class Rpc(val port: Int) {
+class Rpc private constructor(private val address: String) {
     companion object {
         init {
             System.loadLibrary("rpc")
         }
+
+        fun forTcpPort(port: Int) = Rpc("0.0.0.0:$port")
+        fun forUnixDomainSocket(path: String) = Rpc("unit://$path")
     }
 
-    fun start() = nativeStart(port)
-    private external fun nativeStart(port: Int)
+    fun start() = start(address)
+    private external fun start(address: String)
     external fun shutdownNow()
 }
 

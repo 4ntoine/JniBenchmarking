@@ -25,10 +25,8 @@ import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesResponse as LiteMatchesRespo
 import com.eyeo.ctu.engine.protobuf.rpc.wire.MatchesRequest as WireMatchesRequest
 import com.eyeo.ctu.engine.protobuf.rpc.wire.EngineServiceClient
 import com.squareup.wire.GrpcClient
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
+import io.grpc.*
 import com.eyeo.ctu.engine.protobuf.rpc.lite.BlockingFilter as RpcBlockingFilter
-import io.grpc.Server
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
@@ -82,6 +80,7 @@ class RpcBenchmark {
         javaInProcessServer = InProcessServerBuilder
             .forName(JAVA_INPROCESS_CHANNEL)
             .addService(engineService)
+            .directExecutor() // that should be reportedly a huge performance win (but seems to be almost the same)
             .build()
         javaInProcessServer.start()
     }
@@ -90,6 +89,7 @@ class RpcBenchmark {
         javaSocketServer = NettyServerBuilder // have to use Netty.. explicitly (instead of Managed..)
             .forPort(JAVA_PORT)
             .addService(engineService)
+            .directExecutor() // that should be reportedly a huge performance win (but seems to be almost the same)
             .build()
         javaSocketServer.start()
     }
@@ -119,6 +119,7 @@ class RpcBenchmark {
         val channel = ManagedChannelBuilder
             .forAddress("localhost", JAVA_PORT)
             .usePlaintext()
+            .directExecutor() // that should be reportedly a huge performance win (but seems to be almost the same)
             .build()
         measure(channel)
     }
@@ -128,12 +129,15 @@ class RpcBenchmark {
         val channel = InProcessChannelBuilder
             .forName(JAVA_INPROCESS_CHANNEL)
             .usePlaintext()
+            .compressorRegistry(CompressorRegistry.newEmptyInstance())
+            .decompressorRegistry(DecompressorRegistry.emptyInstance())
+            .directExecutor() // that should be reportedly a huge performance win (but seems to be almost the same)
             .build()
         measure(channel)
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_pureRpc_wire() {
+    fun testSendRequestAndReceiveResponse_pureRpc_socket_wire() {
         val grpcClient = GrpcClient.Builder()
             .client(
                 OkHttpClient.Builder()
