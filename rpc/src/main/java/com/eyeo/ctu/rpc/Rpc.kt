@@ -24,7 +24,7 @@ class Rpc private constructor(private val address: String) {
         }
 
         fun forTcpPort(port: Int) = Rpc("0.0.0.0:$port")
-        fun forUnixDomainSocket(path: String) = Rpc("unit://$path")
+        fun forUnixDomainSocket(path: String) = Rpc("unix://$path")
     }
 
     fun start() = start(address)
