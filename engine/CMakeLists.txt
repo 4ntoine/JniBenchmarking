@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 # generated messages path
-set( MESSAGES_GEN_DIR build/generated/source/proto/debug/cpp )
+string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE_DIR)
+set( MESSAGES_GEN_DIR build/generated/source/proto/${BUILD_TYPE_DIR}/cpp )
 
 # Sets lib_src_DIR to the path of the target CMake project.
 set( PROTOBUF_SRC_DIR libs/protobuf/cmake )
@@ -29,7 +30,7 @@ add_library(engine
             src/main/cpp/libengine.cpp
             src/main/cpp/Utils.cpp
             src/main/cpp/Engine.cpp
-            build/generated/source/proto/debug/cpp/matches.pb.cc)
+            build/generated/source/proto/${BUILD_TYPE_DIR}/cpp/matches.pb.cc)
 
 # Links the top-level CMake build output against libprotobuf.
 target_link_libraries( engine libprotobuf-lite )
