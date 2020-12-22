@@ -17,6 +17,7 @@
 
 package com.eyeo.ctu.rpc
 
+import androidx.test.platform.app.InstrumentationRegistry
 import com.eyeo.ctu.engine.protobuf.rpc.lite.BlockingFilter
 import com.eyeo.ctu.engine.protobuf.rpc.lite.EngineServiceGrpc
 import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesRequest
@@ -37,12 +38,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 class AndroidRpcTest {
     companion object {
         const val JAVA_PORT = 7777
         const val JAVA_INPROCESS_CHANNEL_NAME = "ABP"
-        const val UNIX_SOCKET = "ABP"
         const val CPP_PORT = 7778
     }
 
@@ -71,11 +72,12 @@ class AndroidRpcTest {
     private lateinit var javaInProcessServer: Server
     private lateinit var cppTcpSocketServer: Rpc
     private lateinit var cppUnixDomainSocketServer: Rpc
+    private lateinit var unixSocketPath: String
 
     @Before
     fun setUp() {
-        setUpJava()
         setUpCpp()
+        setUpJava()
     }
 
     private fun setUpCpp() {
@@ -84,7 +86,11 @@ class AndroidRpcTest {
     }
 
     private fun setUpCppUnixDomainSocketServer() {
-        cppUnixDomainSocketServer = Rpc.forUnixDomainSocket(UNIX_SOCKET)
+        // the app (test) must have read/write permissions to the path, thus using cache directory
+        val context = InstrumentationRegistry.getInstrumentation().context
+        unixSocketPath = File(context.cacheDir, "abp").absolutePath
+
+        cppUnixDomainSocketServer = Rpc.forUnixDomainSocket(unixSocketPath)
         cppUnixDomainSocketServer.start()
     }
 
@@ -159,9 +165,10 @@ class AndroidRpcTest {
     @Test
     fun testSendRequestAndReceiveResponse_unixDomainSocket_lite_cpp() {
         val channel = NettyChannelBuilder
-            .forAddress(DomainSocketAddress(UNIX_SOCKET))
+            .forAddress(DomainSocketAddress(unixSocketPath))
             .eventLoopGroup(EpollEventLoopGroup())
             .channelType(EpollDomainSocketChannel::class.java)
+            .usePlaintext()
             .directExecutor()
             .build()
         test(channel)
