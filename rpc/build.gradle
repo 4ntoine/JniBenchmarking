@@ -98,7 +98,6 @@ dependencies {
   api "io.grpc:grpc-netty-shaded:${grpcVersion}" // for server
 
   testImplementation 'junit:junit:4.13.1'
-  testImplementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
 
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'
   androidTestImplementation 'androidx.test:runner:1.3.0'
