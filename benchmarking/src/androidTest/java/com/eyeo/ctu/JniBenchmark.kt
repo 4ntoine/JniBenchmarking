@@ -23,8 +23,14 @@ import org.junit.Rule
 import org.junit.Test
 //import java.util.concurrent.CountDownLatch
 
+abstract class ClassA        { abstract fun someTestMethod()    }
+open class ClassB : ClassA() { override fun someTestMethod(){}; fun someBaseMethod(){} }
+open class ClassC : ClassB() { override fun someTestMethod(){}; fun someTestMethod(someArg: Int){} }
+
 class JniBenchmark {
     private val library = Library()
+    private val libraryClassName = library::class.java.canonicalName!!.replace(".", "/")
+    private val cClassName = ClassC::class.java.canonicalName!!.replace(".", "/")
 
     @get:Rule
     val benchmarkRule = BenchmarkRule()
@@ -100,6 +106,11 @@ class JniBenchmark {
         library.nativeNoArgsStringResult()
     }
 
+    @Test
+    fun benchmarkNoArgsNoResultAllocateString() = benchmarkRule.measureRepeated {
+        library.nativeNoArgsNoResultAllocateString()
+    }
+
     // arguments: 1
 
     @Test
@@ -164,5 +175,77 @@ class JniBenchmark {
     @Test
     fun benchmarkStringEcho() = benchmarkRule.measureRepeated {
         library.nativeStringEcho("hello world")
+    }
+
+    @Test
+    fun benchmarkFindClass() = benchmarkRule.measureRepeated {
+        library.nativeFindClass(libraryClassName)
+    }
+
+    @Test
+    fun benchmarkFindMethod() = benchmarkRule.measureRepeated {
+        val methodName = "someTestMethod"
+        val methodSignature = "()V"
+        library.nativeFindMethod(methodName, methodSignature)
+    }
+
+    @Test
+    fun benchmarkFindClassAndMethod_declared() = benchmarkRule.measureRepeated {
+        val methodName = "someTestMethod"
+        val methodSignature = "()V"
+        library.nativeFindClassAndMethod(libraryClassName, methodName, methodSignature)
+    }
+
+    @Test
+    fun benchmarkFindMethod_overridenSuperClass() = benchmarkRule.measureRepeated {
+        val methodName = "someTestMethod"
+        val methodSignature = "()V"
+        library.nativeFindClassAndMethod(cClassName, methodName, methodSignature)
+    }
+
+    @Test
+    fun benchmarkFindMethod_overridenSameClass() = benchmarkRule.measureRepeated {
+        // it has another signature method with the same name but different args
+        val methodName = "someBaseMethod"
+        val methodSignature = "()V"
+        library.nativeFindClassAndMethod(cClassName, methodName, methodSignature)
+    }
+
+    @Test
+    fun benchmarkFindMethod_superClass() = benchmarkRule.measureRepeated {
+        val methodName = "someBaseMethod"
+        val methodSignature = "()V"
+        library.nativeFindClassAndMethod(cClassName, methodName, methodSignature)
+    }
+
+    @Test
+    fun benchmarkCallJavaFromNative_findAndCall() = benchmarkRule.measureRepeated {
+        val methodName = "someTestMethod"
+        val methodSignature = "()V"
+        library.nativeCallJavaFromNative(library, methodName, methodSignature)
+    }
+
+    @Test
+    fun benchmarkCallJavaFromNative_overriden() = benchmarkRule.measureRepeated {
+        val methodName = "someTestMethod"
+        val methodSignature = "()V"
+        val c = ClassC()
+        library.nativeCallJavaFromNative(c, methodName, methodSignature)
+    }
+
+    @Test
+    fun benchmarkCallJavaFromNative_callAsConcrete() = benchmarkRule.measureRepeated {
+        // method is already found, it's just pure costs of the call
+        library.nativeCallJavaFromNativeAsConcrete()
+    }
+
+    @Test
+    fun benchmarkCallJavaFromNative_callAsInterface() = benchmarkRule.measureRepeated {
+        library.nativeCallJavaFromNativeAsInterface()
+    }
+
+    @Test
+    fun benchmarkCallJavaFromNative_callAsAbstract() = benchmarkRule.measureRepeated {
+        library.nativeCallJavaFromNativeAsAbstract()
     }
 }

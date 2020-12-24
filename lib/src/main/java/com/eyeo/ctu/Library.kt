@@ -17,7 +17,15 @@
 
 package com.eyeo.ctu
 
-class Library {
+interface Iface {
+    fun ifaceMethod()
+}
+
+abstract class Base {
+    abstract fun abstractMethod()
+}
+
+open class Library : Iface, Base() {
     companion object {
         init {
             System.loadLibrary("benchmark")
@@ -35,6 +43,7 @@ class Library {
     external fun nativeNoArgsFloatResult(): Float
     external fun nativeNoArgsDoubleResult(): Double
     external fun nativeNoArgsStringResult(): String
+    external fun nativeNoArgsNoResultAllocateString()
 
     // 1 argument
 
@@ -56,4 +65,37 @@ class Library {
     external fun nativeFloatEcho(arg: Float): Float
     external fun nativeDoubleEcho(arg: Double): Double
     external fun nativeStringEcho(arg: String): String
+
+    // find
+
+    // do not remove! it's needed for search from JNI
+    open fun someTestMethod() {}
+
+    external fun nativeFindClass(mangledJavaClassName: String): Boolean
+    external fun nativeFindClassAndMethod(mangledJavaClassName: String,
+                                          methodName: String,
+                                          methodSignature: String): Boolean
+
+    external fun nativeFindMethod(methodName: String,
+                                  methodSignature: String): Boolean
+
+    // call
+
+    // do not remove! it's needed for search from JNI
+    // concrete class method
+    open fun concreteMethod() {}
+
+    // interface method
+    override fun ifaceMethod() {}
+
+    // base class method impl
+    override fun abstractMethod() {}
+
+    external fun nativeCallJavaFromNative(obj: Any,
+                                          methodName: String,
+                                          methodSignature: String): Boolean
+
+    external fun nativeCallJavaFromNativeAsConcrete()  // concrete class method
+    external fun nativeCallJavaFromNativeAsInterface() // interface method impl
+    external fun nativeCallJavaFromNativeAsAbstract()  // abstract method impl
 }

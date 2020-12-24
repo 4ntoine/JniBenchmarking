@@ -19,17 +19,23 @@ package com.eyeo.ctu
 
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
+import androidx.test.platform.app.InstrumentationRegistry
 import com.eyeo.ctu.engine.protobuf.rpc.lite.EngineServiceGrpc
 import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesRequest as LiteMatchesRequest
 import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesResponse as LiteMatchesResponse
 import com.eyeo.ctu.engine.protobuf.rpc.wire.MatchesRequest as WireMatchesRequest
 import com.eyeo.ctu.engine.protobuf.rpc.wire.EngineServiceClient
+import com.eyeo.ctu.rpc.Rpc
 import com.squareup.wire.GrpcClient
 import io.grpc.*
 import com.eyeo.ctu.engine.protobuf.rpc.lite.BlockingFilter as RpcBlockingFilter
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollDomainSocketChannel
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollEventLoopGroup
+import io.grpc.netty.shaded.io.netty.channel.unix.DomainSocketAddress
 import io.grpc.stub.StreamObserver
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -37,6 +43,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.After
 import org.junit.Before
+import java.io.File
 
 class RpcBenchmark {
     companion object {
@@ -66,6 +73,8 @@ class RpcBenchmark {
     private lateinit var javaSocketServer: Server
     private lateinit var javaInProcessServer: Server
     private val engineService = EngineServiceImpl()
+    private lateinit var cppUnixDomainSocketServer: Rpc
+    private lateinit var unixSocketPath: String
 
     @get:Rule
     val benchmarkRule = BenchmarkRule()
@@ -74,6 +83,7 @@ class RpcBenchmark {
     fun setUp() {
         setUpSocketServer()
         setUpInProcessServer()
+        setUpCppUnixDomainSocketServer()
     }
 
     private fun setUpInProcessServer() {
@@ -83,6 +93,15 @@ class RpcBenchmark {
             .directExecutor() // that should be reportedly a huge performance win (but seems to be almost the same)
             .build()
         javaInProcessServer.start()
+    }
+
+    private fun setUpCppUnixDomainSocketServer() {
+        // the app (test) must have read/write permissions to the path, thus using cache directory
+        val context = InstrumentationRegistry.getInstrumentation().context
+        unixSocketPath = File(context.cacheDir, "abp").absolutePath
+
+        cppUnixDomainSocketServer = Rpc.forUnixDomainSocket(unixSocketPath)
+        cppUnixDomainSocketServer.start()
     }
 
     private fun setUpSocketServer() {
@@ -98,6 +117,7 @@ class RpcBenchmark {
     fun tearDown() {
         javaSocketServer.shutdownNow()
         javaInProcessServer.shutdownNow()
+        cppUnixDomainSocketServer.shutdownNow()
     }
 
     private fun measure(channel: ManagedChannel) {
@@ -132,6 +152,18 @@ class RpcBenchmark {
             .compressorRegistry(CompressorRegistry.newEmptyInstance())
             .decompressorRegistry(DecompressorRegistry.emptyInstance())
             .directExecutor() // that should be reportedly a huge performance win (but seems to be almost the same)
+            .build()
+        measure(channel)
+    }
+
+    @Test
+    fun testSendRequestAndReceiveResponse_pureRPc_unixDomainSocket_lite() {
+        val channel = NettyChannelBuilder
+            .forAddress(DomainSocketAddress(unixSocketPath))
+            .eventLoopGroup(EpollEventLoopGroup())
+            .channelType(EpollDomainSocketChannel::class.java)
+            .usePlaintext()
+            .directExecutor()
             .build()
         measure(channel)
     }

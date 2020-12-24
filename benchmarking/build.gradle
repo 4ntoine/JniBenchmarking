@@ -46,4 +46,8 @@ dependencies {
   androidTestImplementation project(":lib")
   androidTestImplementation project(":engine")
   androidTestImplementation project(":rpc")
+
+  androidTestImplementation('io.netty:netty-transport-native-epoll-android:4.1.55.Final@aar') {
+    changing true
+  }
 }

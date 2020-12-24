@@ -18,6 +18,12 @@
 #include <jni.h>
 #include "Utils.h"
 
+// precaching
+JniGlobalReference<jclass>* libraryClassRef = nullptr;
+jmethodID concreteMethod = nullptr;
+jmethodID ifaceMethod = nullptr;
+jmethodID abstractMethod = nullptr;
+
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
     JNIEnv* env;
@@ -27,6 +33,15 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     }
 
     JniUtils_OnLoad(vm, env, reserved);
+
+    auto libraryClass = env->FindClass("com/eyeo/ctu/Library");
+    libraryClassRef = new JniGlobalReference<jclass>(env, libraryClass);
+    auto ifaceClass = env->FindClass("com/eyeo/ctu/Iface");
+    auto abstractClass = env->FindClass("com/eyeo/ctu/Base");
+
+    concreteMethod = env->GetMethodID(libraryClass, "concreteMethod", "()V");
+    ifaceMethod = env->GetMethodID(ifaceClass, "ifaceMethod", "()V");
+    abstractMethod = env->GetMethodID(abstractClass, "abstractMethod", "()V");
 
     return JNI_VERSION;
 }
@@ -39,6 +54,11 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
         return;
     }
 
+    if (libraryClassRef)
+    {
+        delete libraryClassRef;
+        libraryClassRef = nullptr;
+    }
     JniUtils_OnUnload(vm, env, reserved);
 }
 
@@ -110,6 +130,16 @@ Java_com_eyeo_ctu_Library_nativeNoArgsStringResult(JNIEnv *env, jobject thiz)
     // no argument
     // string result
     return JniStdStringToJava(env, stringResult);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_nativeNoArgsNoResultAllocateString(JNIEnv *env, jobject thiz)
+{
+    // no argument
+    // no result
+    // but allocating the string
+    auto tmpString = JniStdStringToJava(env, stringResult);
 }
 
 // 1 argument
@@ -208,4 +238,87 @@ JNIEXPORT jstring JNICALL
 Java_com_eyeo_ctu_Library_nativeStringEcho(JNIEnv *env, jobject thiz, jstring arg)
 {
     return arg;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_eyeo_ctu_Library_nativeFindClass(JNIEnv *env, jobject thiz, jstring jClassName)
+{
+    auto className = JniJavaToStdString(env, jClassName);
+    auto clazz = env->FindClass(className.c_str());
+    return (clazz ? JNI_TRUE : JNI_FALSE);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_eyeo_ctu_Library_nativeFindClassAndMethod(JNIEnv *env, jobject thiz,
+                                                   jstring jClassName,
+                                                   jstring jMethodName,
+                                                   jstring jMethodSignature)
+{
+    auto className = JniJavaToStdString(env, jClassName);
+    auto methodName = JniJavaToStdString(env, jMethodName);
+    auto signature = JniJavaToStdString(env, jMethodSignature);
+
+    auto clazz = env->FindClass(className.c_str());
+    if (!clazz)
+        return JNI_FALSE;
+
+    auto method = env->GetMethodID(clazz, methodName.c_str(), signature.c_str());
+    return (method ? JNI_TRUE : JNI_FALSE);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_nativeCallJavaFromNativeAsConcrete(JNIEnv *env, jobject thiz)
+{
+    env->CallVoidMethod(thiz, concreteMethod);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_eyeo_ctu_Library_nativeCallJavaFromNative(JNIEnv *env,
+                                                   jobject thiz,
+                                                   jobject obj,
+                                                   jstring jMethodName,
+                                                   jstring jMethodSignature)
+{
+    auto methodName = JniJavaToStdString(env, jMethodName);
+    auto signature = JniJavaToStdString(env, jMethodSignature);
+
+    auto clazz = env->GetObjectClass(obj);
+    auto method = env->GetMethodID(clazz, methodName.c_str(), signature.c_str());
+    if (!method)
+        return JNI_FALSE;
+
+    env->CallVoidMethod(obj, method);
+    return JNI_TRUE;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_nativeCallJavaFromNativeAsInterface(JNIEnv *env, jobject thiz)
+{
+    env->CallVoidMethod(thiz, ifaceMethod);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_Library_nativeCallJavaFromNativeAsAbstract(JNIEnv *env, jobject thiz)
+{
+    env->CallVoidMethod(thiz, abstractMethod);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_eyeo_ctu_Library_nativeFindMethod(JNIEnv *env,
+                                           jobject thiz,
+                                           jstring jMethodName,
+                                           jstring jMethodSignature)
+{
+    auto methodName = JniJavaToStdString(env, jMethodName);
+    auto signature = JniJavaToStdString(env, jMethodSignature);
+
+    auto method = env->GetMethodID(libraryClassRef->Get(), methodName.c_str(), signature.c_str());
+    return (method ? JNI_TRUE : JNI_FALSE);
 }
