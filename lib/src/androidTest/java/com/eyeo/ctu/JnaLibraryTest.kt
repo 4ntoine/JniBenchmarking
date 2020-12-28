@@ -17,19 +17,28 @@
 
 package com.eyeo.ctu
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class JnaLibraryTest {
 
-    private val library = JnaLibrary.INSTANCE
+    companion object {
+        private val library = JnaLibrary.INSTANCE
+    }
 
     @Test
     fun testTrivialCall() {
-        library.nativeNoArgsNoResult()
+        library.jnaNativeNoArgsNoResult()
     }
 
     @Test
     fun testArgsCall() {
-        library.native2IntArgNoResult(1, 2)
+        library.jnaNative2IntArgNoResult(1, 2)
+    }
+
+    @Test
+    fun testStringEcho() {
+        val value = "hello world"
+        assertEquals(value, library.jnaNativeStringEcho(value))
     }
 }

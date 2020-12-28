@@ -17,34 +17,38 @@
 
 package com.eyeo.ctu
 
-import com.sun.jna.Function
-import com.sun.jna.FunctionMapper
 import com.sun.jna.Native
-import com.sun.jna.NativeLibrary
-import java.lang.reflect.Method
-
-// Generates the function name according to JNI rules (eg. Java_classname_methodname)
-// (for some reason the default behavior is to map Function names 1:1,
-// so one have to either call native methods equals to Java class method name,
-// or have Java class methods names like 'Java_classname_methodname').
-class JniFunctionMapper : FunctionMapper {
-    override fun getFunctionName(library: NativeLibrary, method: Method): String =
-        "Java_${method.declaringClass.canonicalName!!.replace(".", "_")}_${method.name}"
-}
 
 interface JnaLibrary : com.sun.jna.Library {
     companion object {
-        private val options = mutableMapOf(
-            // default options
-            com.sun.jna.Library.OPTION_CALLING_CONVENTION to Function.C_CONVENTION,
-            com.sun.jna.Library.OPTION_CLASSLOADER to JnaLibrary::class.java.classLoader,
-
-            // [weird] trick to fix methods mapping
-            com.sun.jna.Library.OPTION_FUNCTION_MAPPER to JniFunctionMapper(),
-        )
-        val INSTANCE = Native.load("benchmark", JnaLibrary::class.java, options)
+        val INSTANCE = Native.load("benchmark", JnaLibrary::class.java)
     }
 
-    fun nativeNoArgsNoResult()
-    fun native2IntArgNoResult(arg1: Int, arg2: Int)
+    // no arguments
+
+    fun jnaNativeNoArgsNoResult()
+    fun jnaNativeNoArgsIntResult(): Int
+    fun jnaNativeNoArgsFloatResult(): Float
+    fun jnaNativeNoArgsDoubleResult(): Double
+
+    // 1 argument
+
+    fun jnaNativeIntArgNoResult(arg: Int)
+    fun jnaNativeFloatArgNoResult(arg: Float)
+    fun jnaNativeDoubleArgNoResult(arg: Double)
+    fun jnaNativeStringArgNoResult(arg: String)
+
+    // 2 arguments
+
+    fun jnaNative2IntArgNoResult(arg1: Int, arg2: Int)
+    fun jnaNative2FloatArgNoResult(arg1: Float, arg2: Float)
+    fun jnaNative2DoubleArgNoResult(arg1: Double, arg2: Double)
+    fun jnaNative2StringArgNoResult(arg1: String, arg2: String)
+
+    // echo
+
+    fun jnaNativeIntEcho(arg: Int): Int
+    fun jnaNativeFloatEcho(arg: Float): Float
+    fun jnaNativeDoubleEcho(arg: Double): Double
+    fun jnaNativeStringEcho(arg: String): String
 }
