@@ -85,6 +85,14 @@ JNIEXPORT void JNICALL
 
 extern "C"
 JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_JnaLibrary_nativeNoArgsNoResult()
+{
+    // no arguments
+    // no result
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 Java_com_eyeo_ctu_Library_nativeThreadSafeNoArgsNoResult(
         JNIEnv *env,
         jobject thiz)
@@ -181,6 +189,14 @@ Java_com_eyeo_ctu_Library_nativeStringArgNoResult(JNIEnv *env, jobject thiz, jst
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_eyeo_ctu_Library_native2IntArgNoResult(JNIEnv *env, jobject thiz, jint arg1, jint arg2)
+{
+    // 2 int arguments
+    // no result
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_eyeo_ctu_JnaLibrary_native2IntArgNoResult(jint arg1, jint arg2)
 {
     // 2 int arguments
     // no result

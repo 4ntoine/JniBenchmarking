@@ -26,3 +26,6 @@
 -keepclassmembers class com.eyeo.ctu.** {
     native <methods>;
 }
+
+-keep class com.sun.jna.** { *; }
+-keep class * implements com.sun.jna.** { *; }
