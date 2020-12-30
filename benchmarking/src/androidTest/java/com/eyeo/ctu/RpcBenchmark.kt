@@ -25,12 +25,14 @@ import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesRequest as LiteMatchesReques
 import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesResponse as LiteMatchesResponse
 import com.eyeo.ctu.engine.protobuf.rpc.wire.MatchesRequest as WireMatchesRequest
 import com.eyeo.ctu.engine.protobuf.rpc.wire.EngineServiceClient
+import com.eyeo.ctu.rpc.JavaUnixDomainSocketFactory
 import com.eyeo.ctu.rpc.Rpc
 import com.squareup.wire.GrpcClient
 import io.grpc.*
 import com.eyeo.ctu.engine.protobuf.rpc.lite.BlockingFilter as RpcBlockingFilter
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
+import io.grpc.okhttp.OkHttpChannelBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import io.grpc.netty.shaded.io.netty.channel.epoll.EpollDomainSocketChannel
@@ -157,11 +159,25 @@ class RpcBenchmark {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_pureRPc_unixDomainSocket_lite() {
+    fun testSendRequestAndReceiveResponse_pureRpc_unixDomainSocket_epoll() {
         val channel = NettyChannelBuilder
             .forAddress(DomainSocketAddress(unixSocketPath))
             .eventLoopGroup(EpollEventLoopGroup())
             .channelType(EpollDomainSocketChannel::class.java)
+            .usePlaintext()
+            .directExecutor()
+            .build()
+        measure(channel)
+    }
+
+    @Test
+    fun testSendRequestAndReceiveResponse_pureRpc_unixDomainSocket_java() {
+        // `forAddress()` arguments does not matter as it's not used further
+        // (just have to pass validation), see below.
+        // `socketFactory()` available on `OkHttpChannelBuilder` only
+        val channel = OkHttpChannelBuilder
+            .forAddress("localhost", JAVA_PORT) // no matter what
+            .socketFactory(JavaUnixDomainSocketFactory(unixSocketPath)) // custom transport
             .usePlaintext()
             .directExecutor()
             .build()
