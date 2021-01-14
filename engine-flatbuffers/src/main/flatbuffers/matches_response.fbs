@@ -1,0 +1,12 @@
+include "matches_common.fbs";
+namespace com.eyeo.ctu.engine.fb;
+
+struct BlockingFilter {
+    pointer: ulong;
+}
+
+table MatchesResponse {
+    filter: BlockingFilter;
+}
+
+root_type MatchesResponse;

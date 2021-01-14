@@ -1,0 +1,129 @@
+plugins {
+  id 'com.android.library'
+  id 'kotlin-android'
+  id 'io.netifi.flatbuffers'
+}
+
+def flatBuffersInputDir = "$projectDir/src/main/flatbuffers"
+def generatedSourcePathJava = "$buildDir/generated/source/flatbuffers/java"
+def generatedSourcePathCpp = "$buildDir/generated/source/flatbuffers/cpp"
+
+android {
+  compileSdkVersion 29
+  buildToolsVersion "30.0.2"
+
+  defaultConfig {
+    minSdkVersion 21
+    targetSdkVersion 29
+    versionCode 1
+    versionName "1.0"
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    externalNativeBuild {
+      cmake {
+        targets "flatbuffers", "engine-fb"
+        // limit targets to only what we need
+      }
+    }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+  kotlinOptions {
+    jvmTarget = '1.8'
+  }
+  externalNativeBuild {
+    cmake {
+      path 'CMakeLists.txt'
+    }
+  }
+
+  // add generated flatbuffers dtos
+  sourceSets {
+    main {
+      java {
+        srcDirs generatedSourcePathJava
+      }
+    }
+  }
+  
+  packagingOptions {
+    exclude "**/*.fbs"
+  }
+}
+
+dependencies {
+  api 'com.google.flatbuffers:flatbuffers-java:1.12.0'
+  testImplementation 'junit:junit:4.13.1'
+  androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+  androidTestImplementation 'androidx.test:runner:1.3.0'
+}
+
+//task createFlatBuffersCpp(type: io.netifi.flatbuffers.plugin.tasks.FlatBuffers) {
+//  outputDir = file(generatedSourcePathCpp)
+//  language = "cpp"
+//}
+//compile.dependsOn createFlatBuffersCpp
+
+task createFlatBuffersCpp(type: Exec) {
+  def inputDir = file(flatBuffersInputDir)
+  def outputCppDir = file(generatedSourcePathCpp)
+  def fbsFiles = layout.files { file(inputDir).listFiles() }.filter { File f -> f.name.endsWith(".fbs") }.toList()
+  ignoreExitValue(true)
+
+  standardOutput = new ByteArrayOutputStream()
+  errorOutput = new ByteArrayOutputStream()
+  def commandLineArgs = ['flatc', '-o', outputCppDir, '--cpp']
+  fbsFiles.forEach{
+    commandLineArgs.add(it.path)
+  }
+  commandLine commandLineArgs
+
+  doFirst {
+    delete "$outputCppDir/"
+    mkdir "$outputCppDir/"
+  }
+  doLast {
+    if (execResult.getExitValue() != 0) {
+      println(standardOutput.toString())
+      throw new GradleException("flatc command line failed")
+    }
+  }
+}
+
+task createFlatBuffersJava(type: Exec) {
+  def inputDir = file(flatBuffersInputDir)
+  def outputKotlinDir = file(generatedSourcePathJava)
+  def fbsFiles = layout.files { file(inputDir).listFiles() }.filter { File f -> f.name.endsWith(".fbs") }.toList()
+  ignoreExitValue(true)
+
+  standardOutput = new ByteArrayOutputStream()
+  errorOutput = new ByteArrayOutputStream()
+  def commandLineArgs = ['flatc', '-o', outputKotlinDir, '--kotlin']
+  fbsFiles.forEach{
+    commandLineArgs.add(it.path)
+  }
+  commandLine commandLineArgs
+
+  doFirst {
+    delete "$outputKotlinDir/"
+    mkdir "$outputKotlinDir/"
+  }
+  doLast {
+    if (execResult.getExitValue() != 0) {
+      println(standardOutput.toString())
+      throw new GradleException("flatc command line failed")
+    }
+  }
+}
+
+afterEvaluate {
+  android.libraryVariants.all { variant ->
+    variant.javaCompiler.dependsOn(createFlatBuffersJava)
+    // TODO: make createFlatBuffersCpp task executed before externalNativeBuild task
+    variant.javaCompiler.dependsOn(createFlatBuffersCpp)
+  }
+}
+
+

@@ -1,0 +1,12 @@
+include "matches_common.fbs";
+namespace com.eyeo.ctu.engine.fb;
+
+table MatchesRequest {
+    url: string;
+    contentTypes: [ContentType];
+    documentUrls: [string];
+    sitekey: string;
+    specificOnly: bool;
+}
+
+root_type MatchesRequest;

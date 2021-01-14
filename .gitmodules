@@ -1,8 +1,12 @@
 [submodule "engine/libs/protobuf"]
 	path = engine/libs/protobuf
-	url = git@github.com:protocolbuffers/protobuf.git
+	url = https://github.com/protocolbuffers/protobuf.git
 	tag = v3.14.0
 [submodule "rpc/libs/grpc"]
 	path = rpc/libs/grpc
-	url = git@github.com:grpc/grpc.git
+	url = https://github.com/grpc/grpc.git
 	tag = v1.34.0
+[submodule "engine-flatbuffers/libs/flatbuffers"]
+	path = engine-flatbuffers/libs/flatbuffers
+	url = https://github.com/google/flatbuffers.git
+	tag = v1.12.0

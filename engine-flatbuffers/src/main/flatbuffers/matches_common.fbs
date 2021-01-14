@@ -1,0 +1,7 @@
+namespace com.eyeo.ctu.engine.fb;
+
+enum ContentType: byte {
+    Image = 0,
+    Script = 1,
+    SubDocument = 2,
+}
