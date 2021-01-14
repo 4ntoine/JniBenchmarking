@@ -32,6 +32,7 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import io.grpc.netty.shaded.io.netty.channel.epoll.EpollDomainSocketChannel
 import io.grpc.netty.shaded.io.netty.channel.epoll.EpollEventLoopGroup
 import io.grpc.netty.shaded.io.netty.channel.unix.DomainSocketAddress
+import io.grpc.okhttp.OkHttpChannelBuilder
 import io.grpc.stub.StreamObserver
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -163,11 +164,25 @@ class AndroidRpcTest {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_unixDomainSocket_lite_cpp() {
+    fun testSendRequestAndReceiveResponse_unixDomainSocket_lite_epoll() {
         val channel = NettyChannelBuilder
             .forAddress(DomainSocketAddress(unixSocketPath))
             .eventLoopGroup(EpollEventLoopGroup())
             .channelType(EpollDomainSocketChannel::class.java)
+            .usePlaintext()
+            .directExecutor()
+            .build()
+        test(channel)
+    }
+
+    @Test
+    fun testSendRequestAndReceiveResponse_unixDomainSocket_lite_java() {
+        // `forAddress()` arguments does not matter as it's not used further
+        // (just have to pass validation), see below.
+        // `socketFactory()` available on `OkHttpChannelBuilder` only
+        val channel = OkHttpChannelBuilder
+            .forAddress("localhost", JAVA_PORT) // no matter what
+            .socketFactory(JavaUnixDomainSocketFactory(unixSocketPath)) // custom transport
             .usePlaintext()
             .directExecutor()
             .build()
