@@ -2,12 +2,13 @@
 include ':jni'
 include ':jni-benchmark'
 
-// jna
-include ':jna'
-
 // jni
 include ':engine-jni'
 include ':engine-jni-benchmark'
+
+// jna
+include ':jna'
+include ':jna-benchmark'
 
 // protocolbuffers
 include ':engine-protocolbuffers'
