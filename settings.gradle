@@ -1,6 +1,6 @@
-include ':calculator'
-include ':lib'
-//include ':engine'
+// pure jni
+include ':jni'
+include ':jni-benchmark'
 
 // jni
 include ':engine-jni'
