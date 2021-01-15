@@ -2,6 +2,9 @@
 include ':jni'
 include ':jni-benchmark'
 
+// jna
+include ':jna'
+
 // jni
 include ':engine-jni'
 include ':engine-jni-benchmark'
