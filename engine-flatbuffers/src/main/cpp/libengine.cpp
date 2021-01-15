@@ -17,11 +17,12 @@
 
 #include "Utils.h"
 #include "Engine.h"
-#include "../../../build/generated/source/flatbuffers/cpp/matches_response_generated.h"
 #include <string>
 #include <vector>
 #include <matches_request_generated.h>
 #include <matches_response_generated.h>
+
+using namespace com::eyeo::ctu::engine::fb;
 
 // precached in JNI_OnLoad and released in JNI_OnUnload
 void JniEngine_OnLoad(JavaVM* vm, JNIEnv* env, void* reserved)
@@ -65,10 +66,7 @@ Engine engine;
 static jbyteArray matches(JNIEnv *env, void* requestBuffer, jsize requestBufferSize)
 {
     // 1. deserialize request
-    unsigned char *buffer = reinterpret_cast<unsigned char*>(requestBuffer);
-    flatbuffers::Verifier verifier(buffer, requestBufferSize);
-    auto verified = com::eyeo::ctu::engine::fb::VerifyMatchesRequestBuffer(verifier);
-    auto request = com::eyeo::ctu::engine::fb::GetMatchesRequest(requestBuffer);
+    auto request = GetMatchesRequest(requestBuffer);
 
     std::vector<std::string> documentsUrls;
     documentsUrls.reserve(request->documentUrls()->size());
@@ -82,14 +80,13 @@ static jbyteArray matches(JNIEnv *env, void* requestBuffer, jsize requestBufferS
             request->url()->str(),
             1, // for simplicity
             documentsUrls,
-            request->sitekey()->str(),
+            request->sitekey() ? request->sitekey()->str() : "", // optional, so required `nullptr` checking
             request->specificOnly());
 
     // 3. serialize response
     flatbuffers::FlatBufferBuilder builder;
-    auto response = com::eyeo::ctu::engine::fb::CreateMatchesResponse(
-            builder,
-            new com::eyeo::ctu::engine::fb::BlockingFilter(filter->pointer()));
+    auto response = CreateMatchesResponse(
+            builder, new com::eyeo::ctu::engine::fb::BlockingFilter(filter->pointer()));
     builder.Finish(response);
 
     // 4. pass over JNI

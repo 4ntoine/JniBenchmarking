@@ -40,7 +40,7 @@ class EngineTest {
             = ByteBuffer.allocateDirect(capacity).order(ByteOrder.LITTLE_ENDIAN)
     }
 
-    private inline fun createRequest(): ByteBuffer {
+    private inline fun createRequest(): FlatBufferBuilder {
         val builder = FlatBufferBuilder(0, DirectFlatBufferBuilder())
         val url = builder.createString(URL)
         val contentTypes = MatchesRequest.createContentTypesVector(
@@ -60,14 +60,14 @@ class EngineTest {
         val request = MatchesRequest.endMatchesRequest(builder)
         builder.finish(request)
 
-        return builder.dataBuffer()
+        return builder
     }
 
     @Test
     fun testSerializeDeserialize() {
-        val requestByteBuffer = createRequest()
+        val requestByteBuilder = createRequest()
 
-        val request = MatchesRequest.getRootAsMatchesRequest(requestByteBuffer)
+        val request = MatchesRequest.getRootAsMatchesRequest(ByteBuffer.wrap(requestByteBuilder.sizedByteArray()))
         assertEquals(URL, request.url)
         assertEquals(1, request.contentTypesLength)
         assertEquals(SubDocument, request.contentTypes(0))
@@ -82,10 +82,8 @@ class EngineTest {
 
     @Test
     fun testBuffer() {
-        val requestByteBuffer = createRequest()
-        requestByteBuffer.rewind()
-
-        val responseByteArray = engine.fbMatchesByteBuffer(requestByteBuffer)
+        val requestBuilder = createRequest()
+        val responseByteArray = engine.fbMatchesByteBuffer(requestBuilder.dataBuffer())
         assertNotNull(responseByteArray)
         val responseBuffer = ByteBuffer.wrap(responseByteArray)
         val response = MatchesResponse.Companion.getRootAsMatchesResponse(responseBuffer)
@@ -94,11 +92,12 @@ class EngineTest {
 
     @Test
     fun testByteArray() {
-        val requestByteBuffer = createRequest()
-        val requestBytesArray = requestByteBuffer.array()
-        val responseByteArray = engine.fbMatchesByteArray(requestBytesArray)
+        val requestBuilder = createRequest()
+        val requestBytes = requestBuilder.sizedByteArray()
+        val responseByteArray = engine.fbMatchesByteArray(requestBytes)
         assertNotNull(responseByteArray)
-        val response = MatchesResponse.getRootAsMatchesResponse(ByteBuffer.wrap(responseByteArray))
+        val responseBuffer = ByteBuffer.wrap(responseByteArray)
+        val response = MatchesResponse.getRootAsMatchesResponse(responseBuffer)
         assertEquals(URL.length.toULong(), response.filter?.pointer)
     }
 }
