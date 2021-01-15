@@ -8,6 +8,7 @@ include ':engine-jni-benchmark'
 
 // protocolbuffers
 include ':engine-protocolbuffers'
+include ':engine-protocolbuffers-benchmark'
 
 // flatbuffers
 include ':engine-flatbuffers'
