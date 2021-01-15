@@ -1,0 +1,92 @@
+plugins {
+  id 'com.android.library'
+  id 'kotlin-android'
+
+  // protobuf
+  id 'com.google.protobuf'
+  id 'com.squareup.wire'
+}
+
+android {
+  compileSdkVersion 29
+  buildToolsVersion "30.0.2"
+
+  defaultConfig {
+    minSdkVersion 21
+    targetSdkVersion 29
+    versionCode 1
+    versionName "1.0"
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    externalNativeBuild {
+      cmake {
+        arguments "-Dprotobuf_BUILD_TESTS=OFF", "-Dprotobuf_WITH_ZLIB=OFF"
+        targets "libprotobuf-lite", "engine-pb"
+        // limit targets to only what we need
+        // (we can consider using more heavyweight libprotobuf if we need)
+      }
+    }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+  kotlinOptions {
+    jvmTarget = '1.8'
+  }
+  externalNativeBuild {
+    cmake {
+      path 'CMakeLists.txt'
+    }
+  }
+
+  // configuration for protobuf-lite
+  sourceSets {
+    main {
+      proto {
+        srcDir 'src/main/proto_lite'
+      }
+    }
+  }
+
+  packagingOptions {
+    exclude "**/*.proto"
+  }
+}
+
+dependencies {
+  api 'com.google.protobuf:protobuf-javalite:3.14.0' // lite for protobuf
+  api "com.squareup.wire:wire-runtime:3.5.0" // wire for protobuf
+  testImplementation 'junit:junit:4.13.1'
+  androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+  androidTestImplementation 'androidx.test:runner:1.3.0'
+}
+
+protobuf {
+  protoc {
+    artifact = 'com.google.protobuf:protoc:3.14.0'
+  }
+  generateProtoTasks {
+    all().each { task ->
+      task.builtins {
+        java {
+          option "lite"
+        }
+
+        // this is needed to compile libprotobuf and use it on JNI native side
+        // for both -lite and -wire libs
+        cpp {
+          option "lite" // keep in sync with what libprotobuf is used when linking (-lite vs. regular)
+        }
+      }
+    }
+  }
+}
+
+wire {
+  sourcePath {
+    srcDir 'src/main/proto_wire'
+  }
+
+  kotlin { } // or `java {}`
+}

@@ -1,5 +1,5 @@
-[submodule "engine/libs/protobuf"]
-	path = engine/libs/protobuf
+[submodule "engine-protocolbuffers/libs/protobuf"]
+	path = engine-protocolbuffers/libs/protobuf
 	url = https://github.com/protocolbuffers/protobuf.git
 	tag = v3.14.0
 [submodule "rpc/libs/grpc"]

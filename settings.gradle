@@ -6,6 +6,10 @@ include ':lib'
 include ':engine-jni'
 include ':engine-jni-benchmark'
 
+// protocolbuffers
+include ':engine-protocolbuffers'
+
+// flatbuffers
 include ':engine-flatbuffers'
 include ':engine-flatbuffers-benchmark'
 
