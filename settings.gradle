@@ -2,13 +2,13 @@
 include ':jni'
 include ':jni-benchmark'
 
-// jni
-include ':engine-jni'
-include ':engine-jni-benchmark'
-
 // jna
 include ':jna'
 include ':jna-benchmark'
+
+// jni
+include ':engine-jni'
+include ':engine-jni-benchmark'
 
 // protocolbuffers
 include ':engine-protocolbuffers'
@@ -19,7 +19,7 @@ include ':engine-flatbuffers'
 include ':engine-flatbuffers-benchmark'
 
 // rpc
-//include ':rpc'
+include ":grpc"
 //include ':benchmarking'
 
 rootProject.name = "JniBenchmarking"
