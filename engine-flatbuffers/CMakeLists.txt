@@ -87,8 +87,7 @@ include_directories( ${MESSAGES_GEN_DIR} )
 
 add_library(engine-fb
             SHARED
-            src/main/cpp/libengine.cpp
-            src/main/cpp/Utils.cpp
+            src/main/cpp/libengine-fb.cpp
             src/main/cpp/Engine.cpp
             build/generated/source/flatbuffers/cpp/matches_common_generated.h
             build/generated/source/flatbuffers/cpp/matches_request_generated.h

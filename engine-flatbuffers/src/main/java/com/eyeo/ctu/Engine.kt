@@ -19,21 +19,6 @@ package com.eyeo.ctu
 
 import java.nio.ByteBuffer
 
-enum class ContentType {
-    Image,
-    Script,
-    SubDocument
-    // ...
-}
-
-// filters
-abstract class Filter
-class BlockingFilter(val pointer: Long) : Filter()
-class ExceptionFilter : Filter()
-
-// subscription
-class Subscription(url: String)
-
 class Engine {
     companion object {
         init {
@@ -41,10 +26,6 @@ class Engine {
         }
     }
 
-    // flatbuffers
-
-    external fun fbMatchesByteArray(requestBytes: ByteArray): ByteArray?
-
-    external fun fbMatchesByteBuffer(requestBuffer: ByteBuffer, offset: Int): ByteArray?
-
+    external fun matchesByteArray(requestBytes: ByteArray): ByteArray?
+    external fun matchesByteBuffer(requestBuffer: ByteBuffer, offset: Int): ByteArray?
 }

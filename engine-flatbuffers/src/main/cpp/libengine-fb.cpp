@@ -15,14 +15,16 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utils.h"
-#include "Engine.h"
+#include <jni.h>
 #include <string>
 #include <vector>
 #include <matches_request_generated.h>
 #include <matches_response_generated.h>
+#include "Engine.h"
 
 using namespace com::eyeo::ctu::engine::fb;
+
+#define JNI_VERSION JNI_VERSION_1_6
 
 // precached in JNI_OnLoad and released in JNI_OnUnload
 void JniEngine_OnLoad(JavaVM* vm, JNIEnv* env, void* reserved)
@@ -41,9 +43,6 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
         return JNI_ERR;
     }
 
-    JniUtils_OnLoad(vm, env, reserved);
-    JniEngine_OnLoad(vm, env, reserved);
-
     return JNI_VERSION;
 }
 
@@ -54,9 +53,6 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
     {
         return;
     }
-
-    JniEngine_OnUnload(vm, env, reserved);
-    JniUtils_OnUnload(vm, env, reserved);
 }
 
 // ---
@@ -100,7 +96,7 @@ static jbyteArray matches(JNIEnv *env, void* requestBuffer, jsize requestBufferS
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
-Java_com_eyeo_ctu_Engine_fbMatchesByteArray(JNIEnv *env, jobject thiz, jbyteArray jRequestByteArray)
+Java_com_eyeo_ctu_Engine_matchesByteArray(JNIEnv *env, jobject thiz, jbyteArray jRequestByteArray)
 {
     void* requestBuffer = env->GetByteArrayElements(jRequestByteArray, NULL);
     jsize requestBufferSize = env->GetArrayLength(jRequestByteArray);
@@ -109,7 +105,7 @@ Java_com_eyeo_ctu_Engine_fbMatchesByteArray(JNIEnv *env, jobject thiz, jbyteArra
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
-Java_com_eyeo_ctu_Engine_fbMatchesByteBuffer(
+Java_com_eyeo_ctu_Engine_matchesByteBuffer(
         JNIEnv *env, jobject thiz, jobject jRequestByteBuffer, jint jOffset)
 {
     unsigned char* requestBuffer = reinterpret_cast<unsigned char*>(

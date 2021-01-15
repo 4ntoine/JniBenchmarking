@@ -85,7 +85,7 @@ class EngineTest {
         val requestBuilder = createRequest()
         val requestBuffer = requestBuilder.dataBuffer()
         val offset = requestBuffer.position()
-        val responseByteArray = engine.fbMatchesByteBuffer(requestBuffer, offset)
+        val responseByteArray = engine.matchesByteBuffer(requestBuffer, offset)
         assertNotNull(responseByteArray)
         val responseBuffer = ByteBuffer.wrap(responseByteArray)
         val response = MatchesResponse.Companion.getRootAsMatchesResponse(responseBuffer)
@@ -96,7 +96,7 @@ class EngineTest {
     fun testByteArray() {
         val requestBuilder = createRequest()
         val requestBytes = requestBuilder.sizedByteArray()
-        val responseByteArray = engine.fbMatchesByteArray(requestBytes)
+        val responseByteArray = engine.matchesByteArray(requestBytes)
         assertNotNull(responseByteArray)
         val responseBuffer = ByteBuffer.wrap(responseByteArray)
         val response = MatchesResponse.getRootAsMatchesResponse(responseBuffer)
