@@ -15,30 +15,18 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.eyeo.ctu
+package com.eyeo.ctu.engine.fb
 
 import com.eyeo.ctu.engine.fb.ContentType.Companion.SubDocument
-import com.eyeo.ctu.engine.fb.MatchesRequest
-import com.eyeo.ctu.engine.fb.MatchesResponse
 import com.google.flatbuffers.FlatBufferBuilder
 import org.junit.Assert.*
 import org.junit.Test
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 class EngineTest {
 
     private val engine = Engine()
     private val URL = "http://www.domain.com/someResource.html"
-
-    /**
-     * Allocates direct memory
-     * (to be passed to native side without copying)
-     */
-    class DirectFlatBufferBuilder : FlatBufferBuilder.ByteBufferFactory() {
-        override fun newByteBuffer(capacity: Int): ByteBuffer
-            = ByteBuffer.allocateDirect(capacity).order(ByteOrder.LITTLE_ENDIAN)
-    }
 
     private inline fun createRequest(): FlatBufferBuilder {
         val builder = FlatBufferBuilder(0, DirectFlatBufferBuilder())
@@ -66,8 +54,9 @@ class EngineTest {
     @Test
     fun testSerializeDeserialize() {
         val requestByteBuilder = createRequest()
+        val requestBuffer = ByteBuffer.wrap(requestByteBuilder.sizedByteArray())
+        val request = MatchesRequest.getRootAsMatchesRequest(requestBuffer)
 
-        val request = MatchesRequest.getRootAsMatchesRequest(ByteBuffer.wrap(requestByteBuilder.sizedByteArray()))
         assertEquals(URL, request.url)
         assertEquals(1, request.contentTypesLength)
         assertEquals(SubDocument, request.contentTypes(0))

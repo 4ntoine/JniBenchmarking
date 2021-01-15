@@ -96,7 +96,8 @@ static jbyteArray matches(JNIEnv *env, void* requestBuffer, jsize requestBufferS
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
-Java_com_eyeo_ctu_Engine_matchesByteArray(JNIEnv *env, jobject thiz, jbyteArray jRequestByteArray)
+Java_com_eyeo_ctu_engine_fb_Engine_matchesByteArray(
+        JNIEnv *env, jobject thiz, jbyteArray jRequestByteArray)
 {
     void* requestBuffer = env->GetByteArrayElements(jRequestByteArray, NULL);
     jsize requestBufferSize = env->GetArrayLength(jRequestByteArray);
@@ -105,7 +106,7 @@ Java_com_eyeo_ctu_Engine_matchesByteArray(JNIEnv *env, jobject thiz, jbyteArray 
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
-Java_com_eyeo_ctu_Engine_matchesByteBuffer(
+Java_com_eyeo_ctu_engine_fb_Engine_matchesByteBuffer(
         JNIEnv *env, jobject thiz, jobject jRequestByteBuffer, jint jOffset)
 {
     unsigned char* requestBuffer = reinterpret_cast<unsigned char*>(
