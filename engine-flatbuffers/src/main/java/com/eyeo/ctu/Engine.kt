@@ -45,6 +45,6 @@ class Engine {
 
     external fun fbMatchesByteArray(requestBytes: ByteArray): ByteArray?
 
-    external fun fbMatchesByteBuffer(requestBuffer: ByteBuffer): ByteArray?
+    external fun fbMatchesByteBuffer(requestBuffer: ByteBuffer, offset: Int): ByteArray?
 
 }

@@ -109,9 +109,12 @@ Java_com_eyeo_ctu_Engine_fbMatchesByteArray(JNIEnv *env, jobject thiz, jbyteArra
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
-Java_com_eyeo_ctu_Engine_fbMatchesByteBuffer(JNIEnv *env, jobject thiz, jobject jRequestByteBuffer)
+Java_com_eyeo_ctu_Engine_fbMatchesByteBuffer(
+        JNIEnv *env, jobject thiz, jobject jRequestByteBuffer, jint jOffset)
 {
-    void* requestBuffer = env->GetDirectBufferAddress(jRequestByteBuffer);
-    jsize requestBufferSize = env->GetDirectBufferCapacity(jRequestByteBuffer);
+    unsigned char* requestBuffer = reinterpret_cast<unsigned char*>(
+            env->GetDirectBufferAddress(jRequestByteBuffer)) + jOffset;
+    // have to skip offset - in flatbuffers it starts not from the beginning
+    jsize requestBufferSize = env->GetDirectBufferCapacity(jRequestByteBuffer) - jOffset;
     return matches(env, requestBuffer, requestBufferSize);
 }
