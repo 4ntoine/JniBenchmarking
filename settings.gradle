@@ -1,8 +1,16 @@
 include ':calculator'
 include ':lib'
-include ':engine'
+//include ':engine'
+
+// jni
+include ':engine-jni'
+include ':engine-jni-benchmark'
+
 include ':engine-flatbuffers'
 include ':engine-flatbuffers-benchmark'
-include ':rpc'
-include ':benchmarking'
+
+// rpc
+//include ':rpc'
+//include ':benchmarking'
+
 rootProject.name = "JniBenchmarking"

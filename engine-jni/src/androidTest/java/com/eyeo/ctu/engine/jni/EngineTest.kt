@@ -19,7 +19,6 @@ package com.eyeo.ctu.engine.jni
 
 import org.junit.Assert.*
 import org.junit.Test
-import java.nio.ByteBuffer
 
 class EngineTest {
 

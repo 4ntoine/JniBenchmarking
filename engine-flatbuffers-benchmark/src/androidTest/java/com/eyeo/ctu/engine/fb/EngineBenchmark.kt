@@ -10,7 +10,6 @@ import java.nio.ByteBuffer
 class EngineBenchmark {
 
     private val engine = Engine()
-    private val URL = "http://www.domain.com/someResource.html"
 
     @get:Rule
     val benchmarkRule = BenchmarkRule()
@@ -18,7 +17,7 @@ class EngineBenchmark {
     // "inline" to improve performance
     private inline fun createRequest(): FlatBufferBuilder {
         val builder = FlatBufferBuilder(0, DirectFlatBufferBuilder())
-        val url = builder.createString(URL)
+        val url = builder.createString("http://www.domain.com/someResource.html")
         val contentTypes = MatchesRequest.createContentTypesVector(
             builder, byteArrayOf(ContentType.SubDocument)
         )
