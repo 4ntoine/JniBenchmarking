@@ -27,8 +27,19 @@ class Rpc private constructor(private val address: String) {
         fun forUnixDomainSocket(path: String) = Rpc("unix://$path")
     }
 
-    fun start() = start(address)
-    private external fun start(address: String)
-    external fun shutdownNow()
+    // raw pointer to grpc::Server returned by native side
+    private var pointer: Long? = null
+    fun start() {
+        pointer = start(address)
+    }
+    private external fun start(address: String): Long
+
+    fun shutdownNow() {
+        pointer?.let {
+            shutdownNow(it)
+            pointer = null
+        }
+    }
+    private external fun shutdownNow(pointer: Long)
 }
 

@@ -44,7 +44,6 @@ class EngineServiceImpl final : public EngineService::Service
     }
 };
 
-std::unique_ptr<Server> server;
 EngineServiceImpl service;
 
 std::string JniJavaToStdString(JNIEnv* env, jstring str)
@@ -62,7 +61,7 @@ std::string JniJavaToStdString(JNIEnv* env, jstring str)
 }
 
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jlong JNICALL
 Java_com_eyeo_ctu_engine_grpc_Rpc_start(JNIEnv *env, jobject thiz, jstring jAddress)
 {
     auto addr_uri = JniJavaToStdString(env, jAddress);
@@ -74,17 +73,18 @@ Java_com_eyeo_ctu_engine_grpc_Rpc_start(JNIEnv *env, jobject thiz, jstring jAddr
     // clients. In this case it corresponds to an *synchronous* service.
     builder.RegisterService(&service);
     // Finally assemble the server.
-    server = std::move(builder.BuildAndStart());
+    auto server = std::move(builder.BuildAndStart());
+    auto pointer = server.get();
+    server.release();
+    return reinterpret_cast<jlong>(pointer);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_eyeo_ctu_engine_grpc_Rpc_shutdownNow(JNIEnv *env, jobject thiz)
+Java_com_eyeo_ctu_engine_grpc_Rpc_shutdownNow(JNIEnv *env, jobject thiz, jlong jPointer)
 {
-    if (!server)
-        return;
-
+    auto server = reinterpret_cast<Server*>(jPointer);
     server->Shutdown();
     server->Wait();
-    server.reset();
+    delete server;
 }
