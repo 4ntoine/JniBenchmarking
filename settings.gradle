@@ -18,8 +18,8 @@ include ':engine-protocolbuffers-benchmark'
 include ':engine-flatbuffers'
 include ':engine-flatbuffers-benchmark'
 
-// rpc
+// grpc(protobuf)
 include ":grpc"
-//include ':benchmarking'
+include ':grpc-benchmark'
 
-rootProject.name = "JniBenchmarking"
+rootProject.name = 'JniBenchmarking'

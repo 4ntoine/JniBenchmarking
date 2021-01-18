@@ -1,53 +1,37 @@
-/*
- * This file is part of Adblock Plus <https://adblockplus.org/>,
- * Copyright (C) 2006-present eyeo GmbH
- *
- * Adblock Plus is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
- * published by the Free Software Foundation.
- *
- * Adblock Plus is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-package com.eyeo.ctu
+package com.eyeo.ctu.engine.grpc
 
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
 import androidx.test.platform.app.InstrumentationRegistry
-import com.eyeo.ctu.engine.protobuf.rpc.lite.EngineServiceGrpc
-import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesRequest as LiteMatchesRequest
-import com.eyeo.ctu.engine.protobuf.rpc.lite.MatchesResponse as LiteMatchesResponse
-import com.eyeo.ctu.engine.protobuf.rpc.wire.MatchesRequest as WireMatchesRequest
-import com.eyeo.ctu.engine.protobuf.rpc.wire.EngineServiceClient
-import com.eyeo.ctu.rpc.JavaUnixDomainSocketFactory
-import com.eyeo.ctu.rpc.Rpc
 import com.squareup.wire.GrpcClient
 import io.grpc.*
-import com.eyeo.ctu.engine.protobuf.rpc.lite.BlockingFilter as RpcBlockingFilter
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
-import io.grpc.okhttp.OkHttpChannelBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import io.grpc.netty.shaded.io.netty.channel.epoll.EpollDomainSocketChannel
 import io.grpc.netty.shaded.io.netty.channel.epoll.EpollEventLoopGroup
 import io.grpc.netty.shaded.io.netty.channel.unix.DomainSocketAddress
+import io.grpc.okhttp.OkHttpChannelBuilder
 import io.grpc.stub.StreamObserver
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
-import org.junit.Rule
-import org.junit.Test
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import java.io.File
 
-class RpcBenchmark {
+import com.eyeo.ctu.engine.grpc.lite.EngineServiceGrpc
+import com.eyeo.ctu.engine.grpc.wire.EngineServiceClient
+import com.eyeo.ctu.engine.grpc.lite.MatchesRequest as LiteMatchesRequest
+import com.eyeo.ctu.engine.grpc.lite.MatchesResponse as LiteMatchesResponse
+import com.eyeo.ctu.engine.grpc.lite.BlockingFilter as LiteBlockingFilter
+
+import com.eyeo.ctu.engine.grpc.wire.MatchesRequest as WireMatchesRequest
+
+class EngineBenchmark {
+
     companion object {
         const val JAVA_PORT = 7777
         const val JAVA_INPROCESS_CHANNEL = "ABP"
@@ -63,7 +47,7 @@ class RpcBenchmark {
             // no server-side logic (just to measure the RPC performance)
             val response = LiteMatchesResponse
                 .newBuilder()
-                .setFilter(RpcBlockingFilter
+                .setFilter(LiteBlockingFilter
                     .newBuilder()
                     .build())
                 .build()
@@ -137,7 +121,7 @@ class RpcBenchmark {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_pureRpc_socket_lite() {
+    fun testSendRequestAndReceiveResponse_lite_socket() {
         val channel = ManagedChannelBuilder
             .forAddress("localhost", JAVA_PORT)
             .usePlaintext()
@@ -147,7 +131,7 @@ class RpcBenchmark {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_pureRpc_inProcess_lite() {
+    fun testSendRequestAndReceiveResponse_lite_inProcess() {
         val channel = InProcessChannelBuilder
             .forName(JAVA_INPROCESS_CHANNEL)
             .usePlaintext()
@@ -159,7 +143,7 @@ class RpcBenchmark {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_pureRpc_unixDomainSocket_epoll() {
+    fun testSendRequestAndReceiveResponse_unixDomainSocket_epoll() {
         val channel = NettyChannelBuilder
             .forAddress(DomainSocketAddress(unixSocketPath))
             .eventLoopGroup(EpollEventLoopGroup())
@@ -171,7 +155,7 @@ class RpcBenchmark {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_pureRpc_unixDomainSocket_java() {
+    fun testSendRequestAndReceiveResponse_java_unixDomainSocket() {
         // `forAddress()` arguments does not matter as it's not used further
         // (just have to pass validation), see below.
         // `socketFactory()` available on `OkHttpChannelBuilder` only
@@ -185,10 +169,9 @@ class RpcBenchmark {
     }
 
     @Test
-    fun testSendRequestAndReceiveResponse_pureRpc_socket_wire() {
+    fun testSendRequestAndReceiveResponse_wire_socket() {
         val grpcClient = GrpcClient.Builder()
-            .client(
-                OkHttpClient.Builder()
+            .client(OkHttpClient.Builder()
                 .protocols(listOf(Protocol.H2_PRIOR_KNOWLEDGE))
                 .build())
             .baseUrl("http://localhost:${JAVA_PORT}")
