@@ -39,7 +39,7 @@ dependencies {
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'
   androidTestImplementation 'androidx.test:runner:1.3.0'
   androidTestImplementation "androidx.benchmark:benchmark-junit4:1.0.0"
-  androidTestImplementation project(":grpc")
+  androidTestImplementation project(":engine-grpc")
 
   // checkout and install patched version locally:
   // https://github.com/4ntoine/netty/tree/epoll-android

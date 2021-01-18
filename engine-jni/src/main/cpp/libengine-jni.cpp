@@ -17,8 +17,8 @@
 
 #include <string>
 #include <vector>
-#include "Engine.h"
-#include "Utils.h"
+#include <Engine.h>
+#include <Utils.h>
 
 // precached in JNI_OnLoad and released in JNI_OnUnload
 JniGlobalReference<jclass>* blockingFilterClass;

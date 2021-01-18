@@ -16,7 +16,7 @@
  */
 
 #include <jni.h>
-#include "Utils.h"
+#include <Utils.h>
 
 // precaching
 JniGlobalReference<jclass>* libraryClassRef = nullptr;

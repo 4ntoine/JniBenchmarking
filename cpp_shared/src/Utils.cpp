@@ -136,3 +136,25 @@ static jobject NewJniObject(JNIEnv* env, T&& value, jclass clazz, jmethodID ctor
 {
   return env->NewObject(clazz, ctor, JniPtrToLong(new T(std::forward<T>(value))));
 }
+
+std::vector<std::string> JavaStringListToStringVector(JNIEnv* env, jobject jList)
+{
+  std::vector<std::string> out;
+  if (jList)
+  {
+    jmethodID getFromListMethod = JniGetGetFromListMethod(env, jList);
+    jmethodID getListSizeMethod = JniGetListSizeMethod(env, jList);
+    jsize len = JniGetListSize(env, jList, getListSizeMethod);
+    out.reserve(len);
+
+    for (jsize i = 0; i < len; i++)
+    {
+      out.push_back(
+              JniJavaToStdString(env,
+                                 *JniLocalReference<jstring>(env,
+                                                             static_cast<jstring>(
+                                                                     JniGetObjectFromList(env, jList, getFromListMethod, i)))));
+    }
+  }
+  return out;
+}

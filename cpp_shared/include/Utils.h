@@ -23,6 +23,7 @@
 #include <jni.h>
 #include <stdexcept>
 #include <memory>
+#include <vector>
 
 #define JNI_VERSION JNI_VERSION_1_6
 
@@ -188,5 +189,7 @@ inline jobjectArray JniGetStringArrayField(JNIEnv* env, jclass clazz, jobject jO
 {
   return (jobjectArray)env->GetObjectField(jObj, env->GetFieldID(clazz, name, "[Ljava/lang/String;"));
 }
+
+std::vector<std::string> JavaStringListToStringVector(JNIEnv* env, jobject jList);
 
 #endif

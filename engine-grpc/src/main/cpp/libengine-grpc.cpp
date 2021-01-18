@@ -21,6 +21,7 @@
 #include <matches.pb.h>
 #include <matches.grpc.pb.h>
 #include <grpc++/grpc++.h>
+#include <Engine.h>
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -31,6 +32,8 @@ using grpc::Status;
 
 using namespace com::eyeo::ctu::engine::grpc;
 
+Engine engine;
+
 // Logic and data behind the server's behavior.
 class EngineServiceImpl final : public EngineService::Service
 {
@@ -38,8 +41,26 @@ class EngineServiceImpl final : public EngineService::Service
                    const MatchesRequest* request,
                    MatchesResponse* response) override
    {
-        // server logic: just for the test
-        response->mutable_filter()->set_pointer(request->url().length());
+        // have to map something
+        std::vector<std::string> documentUrls;
+        for (int i = 0; i < request->documenturls().size(); i++)
+        {
+            documentUrls.push_back(request->documenturls().Get(i));
+        }
+
+        // engine logics
+        auto filter = engine.matches(
+                request->url(),
+                1, // for simplicity
+                documentUrls,
+                request->sitekey(),
+                request->specificonly());
+
+        // map back
+        if (filter)
+        {
+            response->mutable_filter()->set_pointer(filter->pointer());
+        }
         return Status::OK;
     }
 };

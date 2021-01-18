@@ -80,7 +80,10 @@ target_link_libraries(rpc_proto_lib
 
 add_library(engine-grpc
             SHARED
-            src/main/cpp/libengine-grpc.cpp)
+            src/main/cpp/libengine-grpc.cpp
+            ../cpp_shared/src/Engine.cpp)
+
+include_directories(../cpp_shared/include)
 
 target_include_directories(engine-grpc
                            PRIVATE

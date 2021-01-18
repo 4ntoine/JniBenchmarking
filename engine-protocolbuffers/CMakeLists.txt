@@ -28,8 +28,10 @@ include_directories(${MESSAGES_GEN_DIR})
 add_library(engine-pb
             SHARED
             src/main/cpp/libengine-pb.cpp
-            src/main/cpp/Engine.cpp
+            ../cpp_shared/src/Engine.cpp
             build/generated/source/proto/${BUILD_TYPE_DIR}/cpp/matches.pb.cc)
+
+include_directories(../cpp_shared/include)
 
 # Links the top-level CMake build output against libprotobuf.
 target_link_libraries(engine-pb libprotobuf-lite)

@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 #include <matches.pb.h>
-#include "Engine.h"
+#include <Engine.h>
 
 using namespace com::eyeo::ctu::engine::pb;
 

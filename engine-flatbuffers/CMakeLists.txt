@@ -88,10 +88,12 @@ include_directories( ${MESSAGES_GEN_DIR} )
 add_library(engine-fb
             SHARED
             src/main/cpp/libengine-fb.cpp
-            src/main/cpp/Engine.cpp
+            ../cpp_shared/src/Engine.cpp
             build/generated/source/flatbuffers/cpp/matches_common_generated.h
             build/generated/source/flatbuffers/cpp/matches_request_generated.h
             build/generated/source/flatbuffers/cpp/matches_response_generated.h)
+
+include_directories(../cpp_shared/include)
 
 # Links the top-level CMake build output against libprotobuf.
 target_link_libraries( engine-fb flatbuffers )
