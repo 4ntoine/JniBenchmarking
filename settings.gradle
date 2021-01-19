@@ -22,4 +22,7 @@ include ':engine-flatbuffers-benchmark'
 include ":engine-grpc"
 include ':engine-grpc-benchmark'
 
+// jvm
+include ':jvm-benchmark'
+
 rootProject.name = 'JniBenchmarking'
